@@ -1,0 +1,231 @@
+// ==================== 训练页面（添加折叠功能） ====================
+function renderWorkout() {
+    const container = document.getElementById('workout-exercises');
+    container.innerHTML = '';
+    let totalSets = 0, completedSets = 0, totalVolume = 0;
+    
+    currentWorkout.exercises.forEach((ex, exIndex) => {
+        const exDiv = document.createElement('div');
+        exDiv.className = 'glass rounded-2xl p-4';
+        
+        // 计算该动作的完成状态
+        const completedCount = ex.sets.filter(s => s.completed).length;
+        const isAllCompleted = completedCount === ex.sets.length;
+        const isExpanded = ex.sets.some(s => !s.completed) && completedCount < ex.sets.length; // 有未完成则默认展开
+        
+        // 动作头部（始终显示）
+        let headerHtml = `
+            <div class="flex justify-between items-center cursor-pointer" onclick="toggleExerciseCollapse(${exIndex})">
+                <div class="flex items-center space-x-3">
+                    <h3 class="font-bold ${isAllCompleted ? 'text-green-400' : ''}">${ex.name}</h3>
+                    <span class="text-xs ${isAllCompleted ? 'text-green-500 bg-green-500/20' : 'text-gray-500 bg-gray-700'} px-2 py-1 rounded-full">
+                        ${completedCount}/${ex.sets.length} 组
+                    </span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-gray-400 volume-display" id="ex-volume-${exIndex}">
+                        ${ex.sets.filter(s => s.completed).reduce((sum, s) => sum + (s.weight * s.reps), 0)} kg
+                    </span>
+                    <span class="text-xl transition-transform duration-200" id="arrow-${exIndex}" style="transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
+                </div>
+            </div>
+        `;
+        
+        // 组数详情（可折叠）
+        let setsHtml = `<div id="ex-detail-${exIndex}" class="${isExpanded ? '' : 'hidden'} mt-3 space-y-2 border-t border-gray-700 pt-3">`;
+        
+        ex.sets.forEach((set, setIndex) => {
+            totalSets++;
+            if (set.completed) {
+                completedSets++;
+                totalVolume += (set.weight || 0) * (set.reps || 0);
+            }
+            
+            setsHtml += `
+                <div class="flex items-center space-x-2 ${set.completed ? 'opacity-60' : ''}" id="set-row-${exIndex}-${setIndex}">
+                    <span class="text-xs text-gray-400 w-8">第${set.setNum}组</span>
+                    <input type="number" value="${set.weight}" onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)" 
+                        class="w-16 bg-black/30 border ${set.completed ? 'border-green-600/50' : 'border-gray-700'} rounded-lg px-2 py-1 text-center text-sm" 
+                        ${set.completed ? 'disabled' : ''}>
+                    <span class="text-gray-500">kg ×</span>
+                    <input type="number" value="${set.reps}" onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)" 
+                        class="w-16 bg-black/30 border ${set.completed ? 'border-green-600/50' : 'border-gray-700'} rounded-lg px-2 py-1 text-center text-sm" 
+                        ${set.completed ? 'disabled' : ''}>
+                    <button onclick="toggleSetComplete(${exIndex}, ${setIndex})" 
+                        class="flex-1 py-1.5 rounded-lg text-sm font-bold transition ${set.completed ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}">
+                        ${set.completed ? '✓ 已完成' : '点击完成'}
+                    </button>
+                </div>
+            `;
+        });
+        
+        setsHtml += `
+            <button onclick="addSet(${exIndex})" class="w-full py-2 text-xs text-blue-400 border border-dashed border-blue-500/30 rounded-lg hover:bg-blue-500/10 mt-2">+ 添加第 ${ex.sets.length + 1} 组</button>
+        </div>`;
+        
+        exDiv.innerHTML = headerHtml + setsHtml;
+        container.appendChild(exDiv);
+    });
+    
+    // 更新底部统计（只计算已完成的）
+    document.getElementById('workout-sets').textContent = `${completedSets}/${totalSets}`;
+    document.getElementById('workout-volume').textContent = `${totalVolume} kg`;
+}
+
+// 折叠/展开动作详情
+function toggleExerciseCollapse(exIndex) {
+    const detail = document.getElementById(`ex-detail-${exIndex}`);
+    const arrow = document.getElementById(`arrow-${exIndex}`);
+    if (detail.classList.contains('hidden')) {
+        detail.classList.remove('hidden');
+        arrow.style.transform = 'rotate(180deg)';
+    } else {
+        detail.classList.add('hidden');
+        arrow.style.transform = 'rotate(0deg)';
+    }
+}
+
+// 修改完成组数的处理，实时更新头部统计
+function toggleSetComplete(exIndex, setIndex) {
+    const set = currentWorkout.exercises[exIndex].sets[setIndex];
+    set.completed = !set.completed;
+    if (set.completed) {
+        set.completedAt = new Date().toISOString();
+    }
+    // 重新渲染以更新折叠头部统计
+    renderWorkout();
+}
+
+// ==================== 日历详情（只显示已完成动作） ====================
+function showDayDetail(year, month, day, record) {
+    const detailDiv = document.getElementById('day-detail');
+    const contentDiv = document.getElementById('detail-content');
+    const dateStr = `${month + 1}月${day}日`;
+    
+    document.getElementById('detail-date').textContent = dateStr;
+    
+    if (!record || !record.exercises) {
+        contentDiv.innerHTML = '<div class="text-gray-500 text-sm">当日无训练记录</div>';
+        document.getElementById('detail-count').textContent = '';
+        detailDiv.classList.remove('hidden');
+        return;
+    }
+    
+    // 只筛选已完成的动作（至少有一组完成）
+    const completedExercises = record.exercises.map(ex => {
+        const completedSets = ex.sets.filter(s => s.completed);
+        return {
+            ...ex,
+            completedSets: completedSets,
+            totalVolume: completedSets.reduce((sum, s) => sum + (s.weight * s.reps), 0),
+            totalSets: completedSets.length
+        };
+    }).filter(ex => ex.totalSets > 0); // 只保留有完成组数的动作
+    
+    if (completedExercises.length === 0) {
+        contentDiv.innerHTML = '<div class="text-gray-500 text-sm">当日没有完成任何组数</div>';
+        document.getElementById('detail-count').textContent = '0组 · 0kg';
+        detailDiv.classList.remove('hidden');
+        return;
+    }
+    
+    let totalSets = 0, totalVolume = 0;
+    let html = `<div class="text-sm text-gray-400 mb-2">${record.templateName || '自定义训练'}</div>`;
+    
+    html += '<div class="space-y-2">';
+    completedExercises.forEach(ex => {
+        totalSets += ex.totalSets;
+        totalVolume += ex.totalVolume;
+        
+        html += `
+            <div class="glass rounded-lg p-3 text-sm border-l-2 border-green-500">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-bold text-green-400">${ex.name}</span>
+                    <span class="text-xs text-green-500">${ex.totalVolume}kg</span>
+                </div>
+                <div class="text-xs text-gray-400">
+                    ${ex.completedSets.map(s => `${s.weight}kg×${s.reps}`).join(' | ')}
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    contentDiv.innerHTML = html;
+    document.getElementById('detail-count').textContent = `${totalSets}组 · ${totalVolume}kg`;
+    detailDiv.classList.remove('hidden');
+}
+
+// ==================== 完成训练（严格校验必须有完成组数） ====================
+async function finishWorkout() {
+    // 检查是否有完成的组数
+    const completedSets = currentWorkout.exercises.flatMap(ex => ex.sets.filter(s => s.completed));
+    
+    if (completedSets.length === 0) {
+        showToast('请至少完成一组训练');
+        return; // 阻止完成
+    }
+    
+    currentWorkout.completed = true;
+    currentWorkout.completedAt = new Date().toISOString();
+    
+    // 清理未完成的组数（可选：保留或删除）
+    currentWorkout.exercises = currentWorkout.exercises.map(ex => ({
+        ...ex,
+        sets: ex.sets.filter(s => s.completed) // 只保留已完成的组
+    })).filter(ex => ex.sets.length > 0); // 删除没有完成组数的动作
+    
+    await dbManager.saveRecord(currentWorkout);
+    
+    const result = await backupManager.backupAfterTraining(currentWorkout);
+    if (result.success) {
+        showToast(`训练完成！${completedSets.length}组已记录，已备份`);
+    } else {
+        showToast('训练已保存，备份失败');
+    }
+    
+    showPage('home');
+    updateHomeStats();
+}
+
+// ==================== 更新首页统计（只算已完成） ====================
+async function updateHomeStats() {
+    const records = await dbManager.getRecords();
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    const monthRecords = records.filter(r => {
+        const d = new Date(r.date);
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+    });
+    
+    let totalSets = 0, totalVolume = 0;
+    const uniqueDays = new Set();
+    
+    monthRecords.forEach(r => {
+        // 只统计有完成组数的记录才算训练日
+        const hasCompletedSets = r.exercises.some(ex => ex.sets.some(s => s.completed));
+        if (hasCompletedSets) {
+            uniqueDays.add(r.date);
+        }
+        
+        if (r.exercises) {
+            r.exercises.forEach(e => {
+                if (e.sets) {
+                    e.sets.forEach(s => {
+                        if (s.completed) {
+                            totalSets++;
+                            totalVolume += (s.weight || 0) * (s.reps || 0);
+                        }
+                    });
+                }
+            });
+        }
+    });
+    
+    document.getElementById('stat-month-count').textContent = monthRecords.length;
+    document.getElementById('stat-total-sets').textContent = totalSets;
+    document.getElementById('stat-total-days').textContent = uniqueDays.size;
+    document.getElementById('stat-total-volume').textContent = totalVolume > 999 ? (totalVolume/1000).toFixed(1) + 'k' : totalVolume;
+}
