@@ -124,7 +124,7 @@
             transition: all 0.3s;
         }
         .exercise-card.completed { border-left: 4px solid #4ade80; }
-        .exercise-card.has-completed { border-left: 4px solid #f59e0b; } /* 部分完成黄色提示 */
+        .exercise-card.has-completed { border-left: 4px solid #f59e0b; }
         
         .exercise-header { 
             padding: 12px 15px; 
@@ -580,22 +580,6 @@
             font-size: 0.9em;
         }
         .install-banner.show { transform: translateY(0); }
-        .install-banner button { 
-            background: #fff; 
-            color: #7b2cbf; 
-            border: none; 
-            padding: 6px 16px; 
-            border-radius: 20px; 
-            margin-left: 10px; 
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-        .install-banner button.secondary {
-            background: transparent;
-            color: #fff;
-            border: 1px solid #fff;
-        }
         
         .offline-bar { 
             position: fixed; 
@@ -750,18 +734,6 @@
             color: #00d4ff;
         }
         
-        .via-warning { 
-            background: rgba(239, 68, 68, 0.15); 
-            border: 1px solid rgba(239, 68, 68, 0.3); 
-            color: #fca5a5; 
-            padding: 12px; 
-            border-radius: 10px; 
-            margin-bottom: 15px;
-            font-size: 0.85em;
-            line-height: 1.5;
-        }
-        .via-warning strong { color: #ef4444; }
-        
         .toast { 
             position: fixed; 
             bottom: 90px; 
@@ -811,6 +783,22 @@
         .stat-box .number.blue { color: #00d4ff; }
         .stat-box .number.pink { color: #f472b6; }
         .stat-box .label { color: #888; font-size: 0.8em; }
+        
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+        }
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #00d4ff;
+        }
+        .checkbox-wrapper label {
+            color: #ccc;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -818,10 +806,11 @@
     <div class="undo-hint" id="undoHint">点击完成按钮可取消完成状态</div>
     
     <div class="install-banner" id="installBanner">
-        <span>安装 Gym Training Pro 获得最佳体验</span>
-        <div style="margin-top:8px">
-            <button onclick="installPWA()">立即安装</button>
-            <button class="secondary" onclick="dismissInstall()">关闭</button>
+        <div style="margin-bottom: 8px;">📱 安装 Gym Training Pro 获得最佳体验</div>
+        <div>
+            <button onclick="installPWA()" style="background: #fff; color: #7b2cbf; border: none; padding: 6px 16px; border-radius: 20px; margin-right: 8px; font-weight: bold; cursor: pointer;">立即安装</button>
+            <button onclick="showInstallGuide()" style="background: transparent; color: #fff; border: 1px solid #fff; padding: 6px 16px; border-radius: 20px; margin-right: 8px; cursor: pointer;">安装指南</button>
+            <button onclick="dismissInstall()" style="background: transparent; color: #ccc; border: none; padding: 6px; cursor: pointer; font-size: 0.9em;">关闭</button>
         </div>
     </div>
 
@@ -832,12 +821,6 @@
                 <h1>💪 Gym Training Pro</h1>
                 <p>PPL三分化训练系统 V2.5</p>
                 <button class="settings-btn" onclick="showSettings()">⚙️</button>
-            </div>
-            
-            <div id="viaWarning" class="via-warning hidden">
-                <strong>⚠️ Via浏览器兼容性警告</strong><br>
-                Via浏览器的"添加到主屏幕"功能存在缺陷，可能导致应用无法离线使用。<br>
-                请使用 Chrome 或 Edge 浏览器安装此应用。
             </div>
             
             <div class="nav-grid">
@@ -970,10 +953,6 @@
                     所有数据仅存储在本地，建议定期备份。<br>
                     <span style="color:#00d4ff">设置备份路径后，将自动保存到指定文件夹</span>
                 </p>
-                
-                <div id="viaWarning2" class="via-warning hidden">
-                    <strong>Via浏览器限制：</strong>由于Via浏览器不支持标准文件系统API，备份将以传统下载方式保存。
-                </div>
                 
                 <button class="btn-primary" onclick="manualBackup()" style="margin-bottom:10px">立即备份</button>
                 
@@ -1130,6 +1109,62 @@
         </div>
     </div>
 
+    <!-- 详细安装指南模态框 -->
+    <div id="installGuideModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; max-height: 85vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2 style="color: #00d4ff; font-size: 1.2em;">📱 分平台安装指南</h2>
+                <button class="close-modal" onclick="closeInstallGuide()">✕</button>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <div style="background: linear-gradient(45deg, #00d4ff20, #7b2cbf20); border: 1px solid #00d4ff40; border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #00d4ff; font-weight: 600;">
+                        <span>⭐</span>
+                        <span>推荐方案：Android Edge 浏览器</span>
+                    </div>
+                    <ol style="color: #ccc; font-size: 0.9em; line-height: 1.6; padding-left: 20px; margin: 0;">
+                        <li>使用 <strong style="color: #fff;">Edge 浏览器</strong> 打开本页面</li>
+                        <li>点击底部菜单 <strong style="color: #fff;">⋮</strong>（三个点）</li>
+                        <li>选择 <strong style="color: #4ade80;">"添加到手机"</strong> 或 <strong style="color: #4ade80;">"安装应用"</strong></li>
+                        <li>在弹窗中选择 <strong style="color: #4ade80;">"安装"</strong></li>
+                        <li style="color: #fbbf24;">⚠️ 注意：必须是"安装"，不是"添加到主屏幕"快捷方式</li>
+                        <li>桌面会出现带 <strong style="color: #4ade80;">绿色角标</strong> 的独立图标</li>
+                    </ol>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #fff; font-weight: 600;">
+                        <span>🤖</span>
+                        <span>Android Chrome</span>
+                    </div>
+                    <ol style="color: #888; font-size: 0.9em; line-height: 1.6; padding-left: 20px; margin: 0;">
+                        <li>使用 Chrome 打开本页面</li>
+                        <li>点击菜单 ⋮ → "安装应用" 或 "添加到主屏幕"</li>
+                        <li>选择 "安装" 创建独立应用</li>
+                        <li>部分机型可能需要点击 "添加到主屏幕" 后选择 "安装"</li>
+                    </ol>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: #fff; font-weight: 600;">
+                        <span>🍎</span>
+                        <span>iOS Safari</span>
+                    </div>
+                    <ol style="color: #888; font-size: 0.9em; line-height: 1.6; padding-left: 20px; margin: 0;">
+                        <li>使用 Safari 打开本页面</li>
+                        <li>点击底部分享按钮 <strong style="color: #fff;">⬆️</strong></li>
+                        <li>上滑找到并点击 <strong style="color: #fff;">"添加到主屏幕"</strong></li>
+                        <li>点击右上角 "添加"</li>
+                        <li style="color: #fbbf24;">⚠️ iOS 仅支持"添加到主屏幕"，非独立 PWA</li>
+                    </ol>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="closeInstallGuide()">我知道了</button>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <!-- 底部导航 -->
@@ -1165,7 +1200,9 @@
             backupDirectoryName: null
         };
         let isInitialized = false;
-        let currentExpandedIndex = 0; // 当前展开的动作索引
+        let currentExpandedIndex = 0;
+        let currentType = 'Push';
+        let deferredPrompt = null;
         
         function getDefaultTemplates() {
             return [
@@ -1597,870 +1634,899 @@
                 }
                 
                 showToast(`成功导入 ${importCount} 个模板`);
-                           closeAIImportModal();
-            renderTemplatesList(currentType);
-            loadWeekStats();
-        } catch (error) {
-            console.error('导入失败:', error);
-            showToast('导入失败: ' + error.message);
-        }
-    }
-    
-    function mapTypeToKey(type) {
-        const typeMap = {
-            'Push': 'Push', '推': 'Push', 'push': 'Push', 'PUSH': 'Push',
-            'Pull': 'Pull', '拉': 'Pull', 'pull': 'Pull', 'PULL': 'Pull',
-            'Legs': 'Legs', '腿': 'Legs', 'legs': 'Legs', 'LEGS': 'Legs',
-            '推日': 'Push', '拉日': 'Pull', '腿日': 'Legs'
-        };
-        return typeMap[type] || type || 'Push';
-    }
-    
-    function processTemplate(template) {
-        if (!template || !template.name) return null;
-        const typeKey = template.typeKey || template.type || 'Push';
-        const exercises = (template.exercises || []).map((ex, idx) => ({
-            name: ex.name || `动作${idx + 1}`,
-            sets: parseInt(ex.sets) || 4,
-            defaultReps: parseInt(ex.defaultReps || ex.reps) || 10,
-            defaultWeight: parseFloat(ex.defaultWeight || ex.weight) || 0,
-            video: ex.video || ex.videoUrl || ex.url || '',
-            note: ex.note || ex.tips || ex.desc || ''
-        }));
-        return {
-            uniqueId: template.uniqueId || `${typeKey}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            id: template.id || `template_${Date.now()}`,
-            name: template.name,
-            typeKey: typeKey,
-            exercises: exercises,
-            createdAt: template.createdAt || new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-    }
-
-    // ==================== 页面导航 ====================
-    function showPage(pageName) {
-        document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-        document.getElementById(pageName + 'Page').classList.remove('hidden');
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        if (pageName === 'home') document.querySelectorAll('.nav-item')[0].classList.add('active');
-        if (pageName === 'calendar') document.querySelectorAll('.nav-item')[1].classList.add('active');
-        if (pageName === 'data') document.querySelectorAll('.nav-item')[2].classList.add('active');
-        currentPage = pageName;
-        window.scrollTo(0, 0);
-    }
-
-    function showHome() {
-        showPage('home');
-        loadWeekStats();
-    }
-
-    function showTemplates(type) {
-        currentType = type;
-        document.getElementById('templateTypeTitle').textContent = type + '日模板';
-        renderTemplatesList(type);
-        showPage('templates');
-    }
-
-    async function renderTemplatesList(typeKey) {
-        const templates = await db.getTemplates();
-        const filtered = templates.filter(t => t.typeKey === typeKey);
-        const container = document.getElementById('templatesList');
-        
-        if (filtered.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <span class="icon">📭</span>
-                    <p>暂无${typeKey}日模板</p>
-                    <p style="font-size:0.85em;margin-top:8px">点击上方按钮创建或导入</p>
-                </div>
-            `;
-            return;
-        }
-        
-        container.innerHTML = filtered.map(t => `
-            <div class="template-item">
-                <div class="template-info">
-                    <h3>${escapeHtml(t.name)}</h3>
-                    <div class="template-meta">${t.exercises ? t.exercises.length : 0} 个动作 · ${t.exercises ? t.exercises.reduce((sum, ex) => sum + (parseInt(ex.sets) || 0), 0) : 0} 组</div>
-                </div>
-                <div class="template-actions">
-                    <button class="icon-btn play" onclick="startWorkout('${t.uniqueId}')" title="开始训练">▶</button>
-                    <button class="icon-btn" onclick="editTemplate('${t.uniqueId}')" title="编辑">✏️</button>
-                    <button class="icon-btn delete" onclick="deleteTemplate('${t.uniqueId}')" title="删除">🗑️</button>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    // ==================== 训练功能 ====================
-    async function startWorkout(templateId) {
-        const templates = await db.getTemplates();
-        const template = templates.find(t => t.uniqueId === templateId);
-        if (!template) {
-            showToast('模板不存在');
-            return;
-        }
-        
-        currentWorkout = {
-            templateId: templateId,
-            templateName: template.name,
-            typeKey: template.typeKey,
-            startTime: new Date(),
-            exercises: template.exercises.map((ex, exIndex) => ({
-                name: ex.name,
-                video: ex.video,
-                note: ex.note,
-                sets: Array.from({ length: parseInt(ex.sets) || 4 }, (_, i) => ({
-                    setNum: i + 1,
-                    reps: ex.defaultReps || 10,
-                    weight: ex.defaultWeight || 0,
-                    completed: false,
-                    completedAt: null
-                }))
-            })),
-            isExpanded: template.exercises.map(() => false)
-        };
-        
-        currentWorkout.isExpanded[0] = true;
-        currentExpandedIndex = 0;
-        
-        document.getElementById('workoutTitle').textContent = template.name;
-        renderWorkout();
-        startTimer();
-        showPage('workout');
-        
-        setTimeout(() => {
-            const undoHint = document.getElementById('undoHint');
-            if (undoHint) {
-                undoHint.classList.add('show');
-                setTimeout(() => undoHint.classList.remove('show'), 5000);
+                closeAIImportModal();
+                renderTemplatesList(currentType);
+                loadWeekStats();
+            } catch (error) {
+                console.error('导入失败:', error);
+                showToast('导入失败: ' + error.message);
             }
-        }, 1000);
-    }
+        }
+        
+        function mapTypeToKey(type) {
+            const typeMap = {
+                'Push': 'Push', '推': 'Push', 'push': 'Push', 'PUSH': 'Push',
+                'Pull': 'Pull', '拉': 'Pull', 'pull': 'Pull', 'PULL': 'Pull',
+                'Legs': 'Legs', '腿': 'Legs', 'legs': 'Legs', 'LEGS': 'Legs',
+                '推日': 'Push', '拉日': 'Pull', '腿日': 'Legs'
+            };
+            return typeMap[type] || type || 'Push';
+        }
+        
+        function processTemplate(template) {
+            if (!template || !template.name) return null;
+            const typeKey = template.typeKey || template.type || 'Push';
+            const exercises = (template.exercises || []).map((ex, idx) => ({
+                name: ex.name || `动作${idx + 1}`,
+                sets: parseInt(ex.sets) || 4,
+                defaultReps: parseInt(ex.defaultReps || ex.reps) || 10,
+                defaultWeight: parseFloat(ex.defaultWeight || ex.weight) || 0,
+                video: ex.video || ex.videoUrl || ex.url || '',
+                note: ex.note || ex.tips || ex.desc || ''
+            }));
+            return {
+                uniqueId: template.uniqueId || `${typeKey}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                id: template.id || `template_${Date.now()}`,
+                name: template.name,
+                typeKey: typeKey,
+                exercises: exercises,
+                createdAt: template.createdAt || new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+        }
 
-    function renderWorkout() {
-        const container = document.getElementById('exercisesContainer');
-        if (!currentWorkout) return;
-        
-        let totalVolume = 0;
-        let completedSets = 0;
-        let totalSets = 0;
-        
-        container.innerHTML = currentWorkout.exercises.map((ex, exIndex) => {
-            const exCompletedSets = ex.sets.filter(s => s.completed).length;
-            const exTotalSets = ex.sets.length;
-            const isExpanded = currentWorkout.isExpanded[exIndex];
-            const allCompleted = exCompletedSets === exTotalSets && exTotalSets > 0;
-            const someCompleted = exCompletedSets > 0 && exCompletedSets < exTotalSets;
+        // ==================== 页面导航 ====================
+        function showPage(pageName) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(pageName + 'Page').classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (pageName === 'home') document.querySelectorAll('.nav-item')[0].classList.add('active');
+            if (pageName === 'calendar') document.querySelectorAll('.nav-item')[1].classList.add('active');
+            if (pageName === 'data') document.querySelectorAll('.nav-item')[2].classList.add('active');
+            currentPage = pageName;
+            window.scrollTo(0, 0);
+        }
+
+        function showHome() {
+            showPage('home');
+            loadWeekStats();
+        }
+
+        function showTemplates(type) {
+            currentType = type;
+            document.getElementById('templateTypeTitle').textContent = type + '日模板';
+            renderTemplatesList(type);
+            showPage('templates');
+        }
+
+        async function renderTemplatesList(typeKey) {
+            const templates = await db.getTemplates();
+            const filtered = templates.filter(t => t.typeKey === typeKey);
+            const container = document.getElementById('templatesList');
             
-            totalSets += exTotalSets;
-            completedSets += exCompletedSets;
-            
-            ex.sets.forEach(set => {
-                if (set.completed) {
-                    totalVolume += (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
-                }
-            });
-            
-            const progressPercent = exTotalSets > 0 ? (exCompletedSets / exTotalSets) * 100 : 0;
-            
-            return `
-                <div class="exercise-card ${allCompleted ? 'completed' : ''} ${someCompleted ? 'has-completed' : ''}">
-                    <div class="progress-indicator" style="--progress: ${progressPercent}%"></div>
-                    <div class="exercise-header" onclick="toggleExerciseCollapse(${exIndex})">
-                        <div style="flex:1;min-width:0">
-                            <div class="exercise-title ${allCompleted ? 'completed' : ''}">
-                                ${escapeHtml(ex.name)}
-                                ${allCompleted ? '✓' : ''}
-                                <span class="progress-text ${allCompleted ? 'completed' : 'pending'}">
-                                    ${exCompletedSets}/${exTotalSets}
-                                </span>
-                            </div>
-                            ${ex.note ? `<div class="exercise-meta">${escapeHtml(ex.note)}</div>` : ''}
-                        </div>
-                        <div style="display:flex;align-items:center">
-                            ${exCompletedSets < exTotalSets ? `
-                                <button class="batch-complete-btn" onclick="event.stopPropagation();batchCompleteExercise(${exIndex})">
-                                    ✓ 全部完成
-                                </button>
-                            ` : ''}
-                            ${ex.video ? `
-                                <a href="${ex.video}" target="_blank" class="video-link" onclick="event.stopPropagation()">
-                                    📹 视频
-                                </a>
-                            ` : ''}
-                            <span class="exercise-arrow ${isExpanded ? 'expanded' : ''}">▼</span>
-                        </div>
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">📭</span>
+                        <p>暂无${typeKey}日模板</p>
+                        <p style="font-size:0.85em;margin-top:8px">点击上方按钮创建或导入</p>
                     </div>
-                    <div class="exercise-body ${isExpanded ? 'expanded' : ''}">
-                        <div class="sets-container">
-                            ${ex.sets.map((set, setIndex) => `
-                                <div class="set-row ${set.completed ? 'completed' : ''}">
-                                    <span class="set-num">${set.setNum}</span>
-                                    <input type="number" class="set-input" placeholder="重量" 
-                                        value="${set.weight}" 
-                                        ${set.completed ? 'disabled' : ''}
-                                        onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)"
-                                        onfocus="selectInput(this)">
-                                    <input type="number" class="set-input" placeholder="次数" 
-                                        value="${set.reps}" 
-                                        ${set.completed ? 'disabled' : ''}
-                                        onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)"
-                                        onfocus="selectInput(this)">
-                                    <button class="set-check ${set.completed ? 'completed' : ''}" 
-                                        onclick="toggleSetComplete(${exIndex}, ${setIndex})">
-                                        ${set.completed ? '✓' : '○'}
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filtered.map(t => `
+                <div class="template-item">
+                    <div class="template-info">
+                        <h3>${escapeHtml(t.name)}</h3>
+                        <div class="template-meta">${t.exercises ? t.exercises.length : 0} 个动作 · ${t.exercises ? t.exercises.reduce((sum, ex) => sum + (parseInt(ex.sets) || 0), 0) : 0} 组</div>
+                    </div>
+                    <div class="template-actions">
+                        <button class="icon-btn play" onclick="startWorkout('${t.uniqueId}')" title="开始训练">▶</button>
+                        <button class="icon-btn" onclick="editTemplate('${t.uniqueId}')" title="编辑">✏️</button>
+                        <button class="icon-btn delete" onclick="deleteTemplate('${t.uniqueId}')" title="删除">🗑️</button>
                     </div>
                 </div>
-            `;
-        }).join('');
-        
-        document.getElementById('totalVolume').textContent = totalVolume.toLocaleString();
-        document.getElementById('completedSets').textContent = completedSets;
-        document.getElementById('totalSets').textContent = totalSets;
-        
-        const finishBtn = document.getElementById('finishBtn');
-        if (finishBtn) {
-            finishBtn.disabled = completedSets === 0;
+            `).join('');
         }
-    }
 
-    function selectInput(input) {
-        input.select();
-    }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-    function toggleExerciseCollapse(exIndex) {
-        if (!currentWorkout) return;
-        currentWorkout.isExpanded[exIndex] = !currentWorkout.isExpanded[exIndex];
-        if (currentWorkout.isExpanded[exIndex]) {
-            currentExpandedIndex = exIndex;
-            currentWorkout.isExpanded.forEach((_, idx) => {
-                if (idx !== exIndex) currentWorkout.isExpanded[idx] = false;
+        // ==================== 训练功能 ====================
+        async function startWorkout(templateId) {
+            const templates = await db.getTemplates();
+            const template = templates.find(t => t.uniqueId === templateId);
+            if (!template) {
+                showToast('模板不存在');
+                return;
+            }
+            
+            currentWorkout = {
+                templateId: templateId,
+                templateName: template.name,
+                typeKey: template.typeKey,
+                startTime: new Date(),
+                exercises: template.exercises.map((ex, exIndex) => ({
+                    name: ex.name,
+                    video: ex.video,
+                    note: ex.note,
+                    sets: Array.from({ length: parseInt(ex.sets) || 4 }, (_, i) => ({
+                        setNum: i + 1,
+                        reps: ex.defaultReps || 10,
+                        weight: ex.defaultWeight || 0,
+                        completed: false,
+                        completedAt: null
+                    }))
+                })),
+                isExpanded: template.exercises.map(() => false)
+            };
+            
+            currentWorkout.isExpanded[0] = true;
+            currentExpandedIndex = 0;
+            
+            document.getElementById('workoutTitle').textContent = template.name;
+            renderWorkout();
+            startTimer();
+            showPage('workout');
+            
+            setTimeout(() => {
+                const undoHint = document.getElementById('undoHint');
+                if (undoHint) {
+                    undoHint.classList.add('show');
+                    setTimeout(() => undoHint.classList.remove('show'), 5000);
+                }
+            }, 1000);
+        }
+
+        function renderWorkout() {
+            const container = document.getElementById('exercisesContainer');
+            if (!currentWorkout) return;
+            
+            let totalVolume = 0;
+            let completedSets = 0;
+            let totalSets = 0;
+            
+            container.innerHTML = currentWorkout.exercises.map((ex, exIndex) => {
+                const exCompletedSets = ex.sets.filter(s => s.completed).length;
+                const exTotalSets = ex.sets.length;
+                const isExpanded = currentWorkout.isExpanded[exIndex];
+                const allCompleted = exCompletedSets === exTotalSets && exTotalSets > 0;
+                const someCompleted = exCompletedSets > 0 && exCompletedSets < exTotalSets;
+                
+                totalSets += exTotalSets;
+                completedSets += exCompletedSets;
+                
+                ex.sets.forEach(set => {
+                    if (set.completed) {
+                        totalVolume += (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
+                    }
+                });
+                
+                const progressPercent = exTotalSets > 0 ? (exCompletedSets / exTotalSets) * 100 : 0;
+                
+                return `
+                    <div class="exercise-card ${allCompleted ? 'completed' : ''} ${someCompleted ? 'has-completed' : ''}">
+                        <div class="progress-indicator" style="--progress: ${progressPercent}%"></div>
+                        <div class="exercise-header" onclick="toggleExerciseCollapse(${exIndex})">
+                            <div style="flex:1;min-width:0">
+                                <div class="exercise-title ${allCompleted ? 'completed' : ''}">
+                                    ${escapeHtml(ex.name)}
+                                    ${allCompleted ? '✓' : ''}
+                                    <span class="progress-text ${allCompleted ? 'completed' : 'pending'}">
+                                        ${exCompletedSets}/${exTotalSets}
+                                    </span>
+                                </div>
+                                ${ex.note ? `<div class="exercise-meta">${escapeHtml(ex.note)}</div>` : ''}
+                            </div>
+                            <div style="display:flex;align-items:center">
+                                ${exCompletedSets < exTotalSets ? `
+                                    <button class="batch-complete-btn" onclick="event.stopPropagation();batchCompleteExercise(${exIndex})">
+                                        ✓ 全部完成
+                                    </button>
+                                ` : ''}
+                                ${ex.video ? `
+                                    <a href="${ex.video}" target="_blank" class="video-link" onclick="event.stopPropagation()">
+                                        📹 视频
+                                    </a>
+                                ` : ''}
+                                <span class="exercise-arrow ${isExpanded ? 'expanded' : ''}">▼</span>
+                            </div>
+                        </div>
+                        <div class="exercise-body ${isExpanded ? 'expanded' : ''}">
+                            <div class="sets-container">
+                                ${ex.sets.map((set, setIndex) => `
+                                    <div class="set-row ${set.completed ? 'completed' : ''}">
+                                        <span class="set-num">${set.setNum}</span>
+                                        <input type="number" class="set-input" placeholder="重量" 
+                                            value="${set.weight}" 
+                                            ${set.completed ? 'disabled' : ''}
+                                            onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)"
+                                            onfocus="selectInput(this)">
+                                        <input type="number" class="set-input" placeholder="次数" 
+                                            value="${set.reps}" 
+                                            ${set.completed ? 'disabled' : ''}
+                                            onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)"
+                                            onfocus="selectInput(this)">
+                                        <button class="set-check ${set.completed ? 'completed' : ''}" 
+                                            onclick="toggleSetComplete(${exIndex}, ${setIndex})">
+                                            ${set.completed ? '✓' : '○'}
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('totalVolume').textContent = totalVolume.toLocaleString();
+            document.getElementById('completedSets').textContent = completedSets;
+            document.getElementById('totalSets').textContent = totalSets;
+            
+            const finishBtn = document.getElementById('finishBtn');
+            if (finishBtn) {
+                finishBtn.disabled = completedSets === 0;
+            }
+        }
+
+        function selectInput(input) {
+            input.select();
+        }
+
+        function toggleExerciseCollapse(exIndex) {
+            if (!currentWorkout) return;
+            currentWorkout.isExpanded[exIndex] = !currentWorkout.isExpanded[exIndex];
+            if (currentWorkout.isExpanded[exIndex]) {
+                currentExpandedIndex = exIndex;
+                currentWorkout.isExpanded.forEach((_, idx) => {
+                    if (idx !== exIndex) currentWorkout.isExpanded[idx] = false;
+                });
+            }
+            renderWorkout();
+        }
+
+        function updateSet(exIndex, setIndex, field, value) {
+            if (!currentWorkout) return;
+            currentWorkout.exercises[exIndex].sets[setIndex][field] = value;
+            renderWorkout();
+        }
+
+        function toggleSetComplete(exIndex, setIndex) {
+            if (!currentWorkout) return;
+            const set = currentWorkout.exercises[exIndex].sets[setIndex];
+            set.completed = !set.completed;
+            set.completedAt = set.completed ? new Date().toISOString() : null;
+            renderWorkout();
+            
+            const allCompleted = currentWorkout.exercises[exIndex].sets.every(s => s.completed);
+            if (allCompleted && set.completed) {
+                if (exIndex < currentWorkout.exercises.length - 1) {
+                    setTimeout(() => {
+                        toggleExerciseCollapse(exIndex + 1);
+                    }, 300);
+                }
+            }
+        }
+
+        function batchCompleteExercise(exIndex) {
+            if (!currentWorkout) return;
+            currentWorkout.exercises[exIndex].sets.forEach(set => {
+                set.completed = true;
+                set.completedAt = new Date().toISOString();
             });
-        }
-        renderWorkout();
-    }
-
-    function updateSet(exIndex, setIndex, field, value) {
-        if (!currentWorkout) return;
-        currentWorkout.exercises[exIndex].sets[setIndex][field] = value;
-        renderWorkout();
-    }
-
-    function toggleSetComplete(exIndex, setIndex) {
-        if (!currentWorkout) return;
-        const set = currentWorkout.exercises[exIndex].sets[setIndex];
-        set.completed = !set.completed;
-        set.completedAt = set.completed ? new Date().toISOString() : null;
-        renderWorkout();
-        
-        const allCompleted = currentWorkout.exercises[exIndex].sets.every(s => s.completed);
-        if (allCompleted && set.completed) {
+            renderWorkout();
+            
             if (exIndex < currentWorkout.exercises.length - 1) {
                 setTimeout(() => {
                     toggleExerciseCollapse(exIndex + 1);
                 }, 300);
             }
         }
-    }
 
-    function batchCompleteExercise(exIndex) {
-        if (!currentWorkout) return;
-        currentWorkout.exercises[exIndex].sets.forEach(set => {
-            set.completed = true;
-            set.completedAt = new Date().toISOString();
-        });
-        renderWorkout();
-        
-        if (exIndex < currentWorkout.exercises.length - 1) {
-            setTimeout(() => {
-                toggleExerciseCollapse(exIndex + 1);
-            }, 300);
+        function startTimer() {
+            workoutSeconds = 0;
+            if (workoutTimer) clearInterval(workoutTimer);
+            workoutTimer = setInterval(() => {
+                workoutSeconds++;
+                const hours = Math.floor(workoutSeconds / 3600);
+                const mins = Math.floor((workoutSeconds % 3600) / 60);
+                const secs = workoutSeconds % 60;
+                document.getElementById('workoutTimer').textContent = 
+                    `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            }, 1000);
         }
-    }
 
-    function startTimer() {
-        workoutSeconds = 0;
-        if (workoutTimer) clearInterval(workoutTimer);
-        workoutTimer = setInterval(() => {
-            workoutSeconds++;
-            const hours = Math.floor(workoutSeconds / 3600);
-            const mins = Math.floor((workoutSeconds % 3600) / 60);
-            const secs = workoutSeconds % 60;
-            document.getElementById('workoutTimer').textContent = 
-                `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }, 1000);
-    }
-
-    function confirmEndWorkout() {
-        if (confirm('确定要结束当前训练吗？未完成的组数将不会保存。')) {
-            endWorkout();
-        }
-    }
-
-    function endWorkout() {
-        if (workoutTimer) {
-            clearInterval(workoutTimer);
-            workoutTimer = null;
-        }
-        currentWorkout = null;
-        showHome();
-    }
-
-    async function finishWorkout() {
-        if (!currentWorkout) return;
-        
-        const hasCompletedSets = currentWorkout.exercises.some(ex => 
-            ex.sets.some(s => s.completed)
-        );
-        
-        if (!hasCompletedSets) {
-            showToast('请至少完成一组训练');
-            return;
-        }
-        
-        const record = {
-            date: new Date().toISOString().split('T')[0],
-            typeKey: currentWorkout.typeKey,
-            templateName: currentWorkout.templateName,
-            duration: workoutSeconds,
-            exercises: currentWorkout.exercises
-                .filter(ex => ex.sets.some(s => s.completed))
-                .map(ex => ({
-                    name: ex.name,
-                    sets: ex.sets.filter(s => s.completed).map(s => ({
-                        setNum: s.setNum,
-                        reps: parseInt(s.reps) || 0,
-                        weight: parseFloat(s.weight) || 0,
-                        completedAt: s.completedAt
-                    }))
-                }))
-        };
-        
-        try {
-            await db.saveRecord(record);
-            
-            if (appSettings.autoBackup) {
-                await backupManager.backupAfterTraining(record);
+        function confirmEndWorkout() {
+            if (confirm('确定要结束当前训练吗？未完成的组数将不会保存。')) {
+                endWorkout();
             }
-            
+        }
+
+        function endWorkout() {
             if (workoutTimer) {
                 clearInterval(workoutTimer);
                 workoutTimer = null;
             }
-            
-            showToast('训练已保存！');
             currentWorkout = null;
             showHome();
-        } catch (error) {
-            console.error('保存失败:', error);
-            showToast('保存失败，请重试');
         }
-    }
 
-    // ==================== 日历功能 ====================
-    async function showCalendar() {
-        showPage('calendar');
-        await renderCalendar();
-    }
-
-    async function renderCalendar() {
-        const year = calendarCurrentDate.getFullYear();
-        const month = calendarCurrentDate.getMonth();
-        
-        document.getElementById('currentMonth').textContent = 
-            `${year}年${month + 1}月`;
-        
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        const daysInMonth = lastDay.getDate();
-        const startDayOfWeek = firstDay.getDay();
-        
-        const records = await db.getRecords();
-        const recordsMap = new Map();
-        records.forEach(r => {
-            if (!recordsMap.has(r.date)) {
-                recordsMap.set(r.date, []);
-            }
-            recordsMap.get(r.date).push(r);
-        });
-        
-        const grid = document.getElementById('calendarGrid');
-        const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
-        
-        let html = dayNames.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
-        
-        for (let i = 0; i < startDayOfWeek; i++) {
-            html += `<div class="calendar-day" style="opacity:0.3"></div>`;
-        }
-        
-        const today = new Date().toISOString().split('T')[0];
-        
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const dayRecords = recordsMap.get(dateStr) || [];
-            const hasWorkout = dayRecords.length > 0;
-            const isToday = dateStr === today;
+        async function finishWorkout() {
+            if (!currentWorkout) return;
             
-            let totalSets = 0;
-            let totalVolume = 0;
-            dayRecords.forEach(r => {
-                r.exercises.forEach(ex => {
-                    ex.sets.forEach(s => {
-                        totalSets++;
-                        totalVolume += (s.weight || 0) * (s.reps || 0);
+            const hasCompletedSets = currentWorkout.exercises.some(ex => 
+                ex.sets.some(s => s.completed)
+            );
+            
+            if (!hasCompletedSets) {
+                showToast('请至少完成一组训练');
+                return;
+            }
+            
+            const record = {
+                date: new Date().toISOString().split('T')[0],
+                typeKey: currentWorkout.typeKey,
+                templateName: currentWorkout.templateName,
+                duration: workoutSeconds,
+                exercises: currentWorkout.exercises
+                    .filter(ex => ex.sets.some(s => s.completed))
+                    .map(ex => ({
+                        name: ex.name,
+                        sets: ex.sets.filter(s => s.completed).map(s => ({
+                            setNum: s.setNum,
+                            reps: parseInt(s.reps) || 0,
+                            weight: parseFloat(s.weight) || 0,
+                            completedAt: s.completedAt
+                        }))
+                    }))
+            };
+            
+            try {
+                await db.saveRecord(record);
+                
+                if (appSettings.autoBackup) {
+                    await backupManager.backupAfterTraining(record);
+                }
+                
+                if (workoutTimer) {
+                    clearInterval(workoutTimer);
+                    workoutTimer = null;
+                }
+                
+                showToast('训练已保存！');
+                currentWorkout = null;
+                showHome();
+            } catch (error) {
+                console.error('保存失败:', error);
+                showToast('保存失败，请重试');
+            }
+        }
+
+        // ==================== 日历功能 ====================
+        async function showCalendar() {
+            showPage('calendar');
+            await renderCalendar();
+        }
+
+        async function renderCalendar() {
+            const year = calendarCurrentDate.getFullYear();
+            const month = calendarCurrentDate.getMonth();
+            
+            document.getElementById('currentMonth').textContent = 
+                `${year}年${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startDayOfWeek = firstDay.getDay();
+            
+            const records = await db.getRecords();
+            const recordsMap = new Map();
+            records.forEach(r => {
+                if (!recordsMap.has(r.date)) {
+                    recordsMap.set(r.date, []);
+                }
+                recordsMap.get(r.date).push(r);
+            });
+            
+            const grid = document.getElementById('calendarGrid');
+            const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+            
+            let html = dayNames.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+            
+            for (let i = 0; i < startDayOfWeek; i++) {
+                html += `<div class="calendar-day" style="opacity:0.3"></div>`;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayRecords = recordsMap.get(dateStr) || [];
+                const hasWorkout = dayRecords.length > 0;
+                const isToday = dateStr === today;
+                
+                let totalSets = 0;
+                let totalVolume = 0;
+                dayRecords.forEach(r => {
+                    r.exercises.forEach(ex => {
+                        ex.sets.forEach(s => {
+                            totalSets++;
+                            totalVolume += (s.weight || 0) * (s.reps || 0);
+                        });
                     });
                 });
-            });
+                
+                html += `
+                    <div class="calendar-day ${isToday ? 'today' : ''} ${hasWorkout ? 'has-workout' : ''}" 
+                         onclick="showDayDetail('${dateStr}')">
+                        <span class="day-number">${day}</span>
+                        ${hasWorkout ? `<span class="day-info">${totalSets}组</span>` : ''}
+                    </div>
+                `;
+            }
             
-            html += `
-                <div class="calendar-day ${isToday ? 'today' : ''} ${hasWorkout ? 'has-workout' : ''}" 
-                     onclick="showDayDetail('${dateStr}')">
-                    <span class="day-number">${day}</span>
-                    ${hasWorkout ? `<span class="day-info">${totalSets}组</span>` : ''}
-                </div>
-            `;
+            grid.innerHTML = html;
         }
-        
-        grid.innerHTML = html;
-    }
 
-    function changeMonth(delta) {
-        calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + delta);
-        renderCalendar();
-    }
+        function changeMonth(delta) {
+            calendarCurrentDate.setMonth(calendarCurrentDate.getMonth() + delta);
+            renderCalendar();
+        }
 
-    function goToToday() {
-        calendarCurrentDate = new Date();
-        renderCalendar();
-    }
+        function goToToday() {
+            calendarCurrentDate = new Date();
+            renderCalendar();
+        }
 
-    async function showDayDetail(dateStr) {
-        const records = await db.getRecords();
-        const dayRecords = records.filter(r => r.date === dateStr);
-        
-        if (dayRecords.length === 0) return;
-        
-        document.getElementById('detailDate').textContent = dateStr;
-        
-        let totalVolume = 0;
-        let totalSets = 0;
-        
-        const content = dayRecords.map(r => {
-            let exHtml = r.exercises.map(ex => {
-                return ex.sets.map(s => {
-                    totalVolume += (s.weight || 0) * (s.reps || 0);
-                    totalSets++;
-                    return `
-                        <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.9em;color:#ccc">
-                            <span>${escapeHtml(ex.name)} ${s.setNum}</span>
-                            <span>${s.weight}kg × ${s.reps}</span>
-                        </div>
-                    `;
+        async function showDayDetail(dateStr) {
+            const records = await db.getRecords();
+            const dayRecords = records.filter(r => r.date === dateStr);
+            
+            if (dayRecords.length === 0) return;
+            
+            document.getElementById('detailDate').textContent = dateStr;
+            
+            let totalVolume = 0;
+            let totalSets = 0;
+            
+            const content = dayRecords.map(r => {
+                let exHtml = r.exercises.map(ex => {
+                    return ex.sets.map(s => {
+                        totalVolume += (s.weight || 0) * (s.reps || 0);
+                        totalSets++;
+                        return `
+                            <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:0.9em;color:#ccc">
+                                <span>${escapeHtml(ex.name)} ${s.setNum}</span>
+                                <span>${s.weight}kg × ${s.reps}</span>
+                            </div>
+                        `;
+                    }).join('');
                 }).join('');
+                
+                return `
+                    <div class="detail-item">
+                        <div style="color:#00d4ff;font-weight:600;margin-bottom:8px">${r.templateName}</div>
+                        ${exHtml}
+                    </div>
+                `;
             }).join('');
             
-            return `
-                <div class="detail-item">
-                    <div style="color:#00d4ff;font-weight:600;margin-bottom:8px">${r.templateName}</div>
-                    ${exHtml}
+            document.getElementById('detailContent').innerHTML = content + `
+                <div style="margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.1);text-align:center">
+                    <div style="font-size:1.2em;font-weight:bold;color:#4ade80">${totalVolume.toLocaleString()} kg</div>
+                    <div style="font-size:0.8em;color:#888">总容量 · ${totalSets} 组</div>
                 </div>
             `;
-        }).join('');
-        
-        document.getElementById('detailContent').innerHTML = content + `
-            <div style="margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,0.1);text-align:center">
-                <div style="font-size:1.2em;font-weight:bold;color:#4ade80">${totalVolume.toLocaleString()} kg</div>
-                <div style="font-size:0.8em;color:#888">总容量 · ${totalSets} 组</div>
-            </div>
-        `;
-        
-        document.getElementById('dayDetailModal').classList.add('show');
-    }
-
-    function closeDayDetail(e) {
-        if (!e || e.target.id === 'dayDetailModal') {
-            document.getElementById('dayDetailModal').classList.remove('show');
+            
+            document.getElementById('dayDetailModal').classList.add('show');
         }
-    }
 
-    // ==================== 模板管理 ====================
-    let currentEditingId = null;
-    let exerciseInputs = [];
+        function closeDayDetail(e) {
+            if (!e || e.target.id === 'dayDetailModal') {
+                document.getElementById('dayDetailModal').classList.remove('show');
+            }
+        }
 
-    function openTemplateModal(templateId = null) {
-        currentEditingId = templateId;
-        document.getElementById('modalTitle').textContent = templateId ? '编辑模板' : '新建模板';
-        
-        if (templateId) {
-            db.getTemplates().then(templates => {
-                const t = templates.find(tpl => tpl.uniqueId === templateId);
-                if (t) {
-                    document.getElementById('templateName').value = t.name;
-                    document.getElementById('templateType').value = t.typeKey;
-                    exerciseInputs = t.exercises.map(ex => ({...ex}));
-                    renderExerciseInputs();
-                }
-            });
-        } else {
-            document.getElementById('templateName').value = '';
-            document.getElementById('templateType').value = currentType || 'Push';
-            exerciseInputs = [{ name: '', sets: 4, defaultReps: 10, defaultWeight: 0, video: '', note: '' }];
+        // ==================== 模板管理 ====================
+        let currentEditingId = null;
+        let exerciseInputs = [];
+
+        function openTemplateModal(templateId = null) {
+            currentEditingId = templateId;
+            document.getElementById('modalTitle').textContent = templateId ? '编辑模板' : '新建模板';
+            
+            if (templateId) {
+                db.getTemplates().then(templates => {
+                    const t = templates.find(tpl => tpl.uniqueId === templateId);
+                    if (t) {
+                        document.getElementById('templateName').value = t.name;
+                        document.getElementById('templateType').value = t.typeKey;
+                        exerciseInputs = t.exercises.map(ex => ({...ex}));
+                        renderExerciseInputs();
+                    }
+                });
+            } else {
+                document.getElementById('templateName').value = '';
+                document.getElementById('templateType').value = currentType || 'Push';
+                exerciseInputs = [{ name: '', sets: 4, defaultReps: 10, defaultWeight: 0, video: '', note: '' }];
+                renderExerciseInputs();
+            }
+            
+            document.getElementById('templateModal').classList.add('show');
+        }
+
+        function closeTemplateModal() {
+            document.getElementById('templateModal').classList.remove('show');
+            currentEditingId = null;
+            exerciseInputs = [];
+        }
+
+        function addExerciseInput() {
+            exerciseInputs.push({ name: '', sets: 4, defaultReps: 10, defaultWeight: 0, video: '', note: '' });
             renderExerciseInputs();
         }
-        
-        document.getElementById('templateModal').classList.add('show');
-    }
 
-    function closeTemplateModal() {
-        document.getElementById('templateModal').classList.remove('show');
-        currentEditingId = null;
-        exerciseInputs = [];
-    }
-
-    function addExerciseInput() {
-        exerciseInputs.push({ name: '', sets: 4, defaultReps: 10, defaultWeight: 0, video: '', note: '' });
-        renderExerciseInputs();
-    }
-
-    function removeExerciseInput(index) {
-        exerciseInputs.splice(index, 1);
-        renderExerciseInputs();
-    }
-
-    function updateExerciseInput(index, field, value) {
-        if (exerciseInputs[index]) {
-            exerciseInputs[index][field] = value;
+        function removeExerciseInput(index) {
+            exerciseInputs.splice(index, 1);
+            renderExerciseInputs();
         }
-    }
 
-    function renderExerciseInputs() {
-        const container = document.getElementById('exercisesList');
-        container.innerHTML = exerciseInputs.map((ex, idx) => `
-            <div class="exercise-input-row">
-                <div class="exercise-basic">
-                    <input type="text" placeholder="动作名称" value="${ex.name}" 
-                        onchange="updateExerciseInput(${idx}, 'name', this.value)" style="font-weight:600">
-                    <input type="number" placeholder="组" value="${ex.sets}" 
-                        onchange="updateExerciseInput(${idx}, 'sets', this.value)" title="组数">
-                    <input type="number" placeholder="次" value="${ex.defaultReps}" 
-                        onchange="updateExerciseInput(${idx}, 'defaultReps', this.value)" title="默认次数">
-                    <button class="btn-remove" onclick="removeExerciseInput(${idx})">✕</button>
-                </div>
-                <div class="exercise-advanced">
-                    <input type="number" placeholder="默认重量 (kg)" value="${ex.defaultWeight}" 
-                        onchange="updateExerciseInput(${idx}, 'defaultWeight', this.value)">
-                    <input type="url" placeholder="教学视频链接 (可选)" value="${ex.video}" 
-                        onchange="updateExerciseInput(${idx}, 'video', this.value)">
-                    <input type="text" placeholder="动作要点/备注 (可选)" value="${ex.note}" 
-                        onchange="updateExerciseInput(${idx}, 'note', this.value)">
-                </div>
-            </div>
-        `).join('');
-    }
-
-    async function saveTemplate() {
-        const name = document.getElementById('templateName').value.trim();
-        const typeKey = document.getElementById('templateType').value;
-        
-        if (!name) {
-            showToast('请输入模板名称');
-            return;
-        }
-        
-        const validExercises = exerciseInputs.filter(ex => ex.name.trim());
-        if (validExercises.length === 0) {
-            showToast('请至少添加一个动作');
-            return;
-        }
-        
-        const template = {
-            uniqueId: currentEditingId || `${typeKey}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            id: currentEditingId ? currentEditingId.split('_')[1] || `template_${Date.now()}` : `template_${Date.now()}`,
-            name: name,
-            typeKey: typeKey,
-            exercises: validExercises,
-            updatedAt: new Date().toISOString()
-        };
-        
-        if (!currentEditingId) {
-            template.createdAt = new Date().toISOString();
-        }
-        
-        try {
-            await db.saveTemplate(template);
-            showToast(currentEditingId ? '模板已更新' : '模板已创建');
-            closeTemplateModal();
-            if (currentPage === 'templates') {
-                renderTemplatesList(currentType);
+        function updateExerciseInput(index, field, value) {
+            if (exerciseInputs[index]) {
+                exerciseInputs[index][field] = value;
             }
-        } catch (error) {
-            showToast('保存失败');
         }
-    }
 
-    async function editTemplate(templateId) {
-        openTemplateModal(templateId);
-    }
-
-    async function deleteTemplate(templateId) {
-        if (!confirm('确定要删除这个模板吗？')) return;
-        
-        try {
-            await db.deleteTemplate(templateId);
-            showToast('模板已删除');
-            renderTemplatesList(currentType);
-        } catch (error) {
-            showToast('删除失败');
+        function renderExerciseInputs() {
+            const container = document.getElementById('exercisesList');
+            container.innerHTML = exerciseInputs.map((ex, idx) => `
+                <div class="exercise-input-row">
+                    <div class="exercise-basic">
+                        <input type="text" placeholder="动作名称" value="${ex.name}" 
+                            onchange="updateExerciseInput(${idx}, 'name', this.value)" style="font-weight:600">
+                        <input type="number" placeholder="组" value="${ex.sets}" 
+                            onchange="updateExerciseInput(${idx}, 'sets', this.value)" title="组数">
+                        <input type="number" placeholder="次" value="${ex.defaultReps}" 
+                            onchange="updateExerciseInput(${idx}, 'defaultReps', this.value)" title="默认次数">
+                        <button class="btn-remove" onclick="removeExerciseInput(${idx})">✕</button>
+                    </div>
+                    <div class="exercise-advanced">
+                        <input type="number" placeholder="默认重量 (kg)" value="${ex.defaultWeight}" 
+                            onchange="updateExerciseInput(${idx}, 'defaultWeight', this.value)">
+                        <input type="url" placeholder="教学视频链接 (可选)" value="${ex.video}" 
+                            onchange="updateExerciseInput(${idx}, 'video', this.value)">
+                        <input type="text" placeholder="动作要点/备注 (可选)" value="${ex.note}" 
+                            onchange="updateExerciseInput(${idx}, 'note', this.value)">
+                    </div>
+                </div>
+            `).join('');
         }
-    }
 
-    // ==================== 设置与数据 ====================
-    function showSettings() {
-        loadSettings();
-        showPage('settings');
-    }
-
-    function showDataPage() {
-        showPage('data');
-        updateLastBackupTime();
-    }
-
-    async function loadSettings() {
-        const saved = await db.getSetting('appSettings');
-        if (saved) {
-            appSettings = { ...appSettings, ...saved };
-        }
-        
-        document.getElementById('filenameFormat').value = appSettings.filenameFormat;
-        document.getElementById('useFilePicker').checked = appSettings.useFilePicker;
-        document.getElementById('autoBackup').checked = appSettings.autoBackup;
-        
-        updateBackupPathDisplay();
-    }
-
-    function updateBackupPathDisplay() {
-        const pathDisplay = document.getElementById('currentBackupPath');
-        if (appSettings.backupDirectoryName) {
-            pathDisplay.textContent = `📁 ${appSettings.backupDirectoryName}`;
-            pathDisplay.style.color = '#4ade80';
-        } else {
-            pathDisplay.textContent = '未设置（将使用默认下载位置）';
-            pathDisplay.style.color = '#888';
-        }
-    }
-
-    async function selectBackupDirectory() {
-        if ('showDirectoryPicker' in window) {
-            try {
-                const dirHandle = await window.showDirectoryPicker();
-                appSettings.backupDirectoryHandle = dirHandle;
-                appSettings.backupDirectoryName = dirHandle.name;
-                updateBackupPathDisplay();
-                showToast('已选择文件夹: ' + dirHandle.name);
-            } catch (e) {
-                if (e.name !== 'AbortError') {
-                    showToast('选择文件夹失败');
-                }
-            }
-        } else {
-            showToast('您的浏览器不支持文件夹选择，请使用 Chrome 或 Edge');
-        }
-    }
-
-    async function saveSettings() {
-        appSettings.filenameFormat = document.getElementById('filenameFormat').value || '训练记录_{YYYY}-{MM}';
-        appSettings.useFilePicker = document.getElementById('useFilePicker').checked;
-        appSettings.autoBackup = document.getElementById('autoBackup').checked;
-        
-        await backupManager.saveSettingsToDB();
-        showToast('设置已保存');
-        showHome();
-    }
-
-    async function manualBackup() {
-        await backupManager.manualBackup();
-    }
-
-    async function updateLastBackupTime() {
-        const lastBackup = await db.getSetting('lastBackup');
-        const el = document.getElementById('lastBackupTime');
-        if (lastBackup) {
-            const date = new Date(lastBackup);
-            el.textContent = date.toLocaleString('zh-CN');
-        } else {
-            el.textContent = '从未备份';
-        }
-    }
-
-    async function importData(input) {
-        const file = input.files[0];
-        if (!file) return;
-        
-        try {
-            const text = await file.text();
-            const data = JSON.parse(text);
+        async function saveTemplate() {
+            const name = document.getElementById('templateName').value.trim();
+            const typeKey = document.getElementById('templateType').value;
             
-            if (data.templates && Array.isArray(data.templates)) {
-                for (const t of data.templates) {
+            if (!name) {
+                showToast('请输入模板名称');
+                return;
+            }
+            
+            const validExercises = exerciseInputs.filter(ex => ex.name.trim());
+            if (validExercises.length === 0) {
+                showToast('请至少添加一个动作');
+                return;
+            }
+            
+            const template = {
+                uniqueId: currentEditingId || `${typeKey}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                id: currentEditingId ? currentEditingId.split('_')[1] || `template_${Date.now()}` : `template_${Date.now()}`,
+                name: name,
+                typeKey: typeKey,
+                exercises: validExercises,
+                updatedAt: new Date().toISOString()
+            };
+            
+            if (!currentEditingId) {
+                template.createdAt = new Date().toISOString();
+            }
+            
+            try {
+                await db.saveTemplate(template);
+                showToast(currentEditingId ? '模板已更新' : '模板已创建');
+                closeTemplateModal();
+                if (currentPage === 'templates') {
+                    renderTemplatesList(currentType);
+                }
+            } catch (error) {
+                showToast('保存失败');
+            }
+        }
+
+        async function editTemplate(templateId) {
+            openTemplateModal(templateId);
+        }
+
+        async function deleteTemplate(templateId) {
+            if (!confirm('确定要删除这个模板吗？')) return;
+            
+            try {
+                await db.deleteTemplate(templateId);
+                showToast('模板已删除');
+                renderTemplatesList(currentType);
+            } catch (error) {
+                showToast('删除失败');
+            }
+        }
+
+        // ==================== 设置与数据 ====================
+        function showSettings() {
+            loadSettings();
+            showPage('settings');
+        }
+
+        function showDataPage() {
+            showPage('data');
+            updateLastBackupTime();
+        }
+
+        async function loadSettings() {
+            const saved = await db.getSetting('appSettings');
+            if (saved) {
+                appSettings = { ...appSettings, ...saved };
+            }
+            
+            document.getElementById('filenameFormat').value = appSettings.filenameFormat;
+            document.getElementById('useFilePicker').checked = appSettings.useFilePicker;
+            document.getElementById('autoBackup').checked = appSettings.autoBackup;
+            
+            updateBackupPathDisplay();
+        }
+
+        function updateBackupPathDisplay() {
+            const pathDisplay = document.getElementById('currentBackupPath');
+            if (appSettings.backupDirectoryName) {
+                pathDisplay.textContent = `📁 ${appSettings.backupDirectoryName}`;
+                pathDisplay.style.color = '#4ade80';
+            } else {
+                pathDisplay.textContent = '未设置（将使用默认下载位置）';
+                pathDisplay.style.color = '#888';
+            }
+        }
+
+        async function selectBackupDirectory() {
+            if ('showDirectoryPicker' in window) {
+                try {
+                    const dirHandle = await window.showDirectoryPicker();
+                    appSettings.backupDirectoryHandle = dirHandle;
+                    appSettings.backupDirectoryName = dirHandle.name;
+                    updateBackupPathDisplay();
+                    showToast('已选择文件夹: ' + dirHandle.name);
+                } catch (e) {
+                    if (e.name !== 'AbortError') {
+                        showToast('选择文件夹失败');
+                    }
+                }
+            } else {
+                showToast('您的浏览器不支持文件夹选择，请使用 Chrome 或 Edge');
+            }
+        }
+
+        async function saveSettings() {
+            appSettings.filenameFormat = document.getElementById('filenameFormat').value || '训练记录_{YYYY}-{MM}';
+            appSettings.useFilePicker = document.getElementById('useFilePicker').checked;
+            appSettings.autoBackup = document.getElementById('autoBackup').checked;
+            
+            await backupManager.saveSettingsToDB();
+            showToast('设置已保存');
+            showHome();
+        }
+
+        async function manualBackup() {
+            await backupManager.manualBackup();
+        }
+
+        async function updateLastBackupTime() {
+            const lastBackup = await db.getSetting('lastBackup');
+            const el = document.getElementById('lastBackupTime');
+            if (lastBackup) {
+                const date = new Date(lastBackup);
+                el.textContent = date.toLocaleString('zh-CN');
+            } else {
+                el.textContent = '从未备份';
+            }
+        }
+
+        async function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+                
+                if (data.templates && Array.isArray(data.templates)) {
+                    for (const t of data.templates) {
+                        await db.saveTemplate(t);
+                    }
+                }
+                if (data.records && Array.isArray(data.records)) {
+                    for (const r of data.records) {
+                        await db.saveRecord(r);
+                    }
+                }
+                
+                showToast('数据已恢复');
+                loadWeekStats();
+            } catch (e) {
+                showToast('导入失败：文件格式错误');
+            }
+            input.value = '';
+        }
+
+        async function clearAllData() {
+            if (!confirm('⚠️ 确定要清除所有数据吗？此操作不可恢复！')) return;
+            if (!confirm('再次确认：将删除所有模板和训练记录，确定吗？')) return;
+            
+            try {
+                await db.clearAll();
+                showToast('所有数据已清除');
+                showHome();
+            } catch (e) {
+                showToast('清除失败');
+            }
+        }
+
+        // ==================== 统计功能 ====================
+        async function loadWeekStats() {
+            const records = await db.getRecords();
+            const today = new Date();
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            weekStart.setHours(0, 0, 0, 0);
+            
+            let weekDays = new Set();
+            let weekVolume = 0;
+            let weekSets = 0;
+            
+            records.forEach(r => {
+                const recordDate = new Date(r.date);
+                if (recordDate >= weekStart && recordDate <= today) {
+                    weekDays.add(r.date);
+                    r.exercises.forEach(ex => {
+                        ex.sets.forEach(s => {
+                            weekVolume += (s.weight || 0) * (s.reps || 0);
+                            weekSets++;
+                        });
+                    });
+                }
+            });
+            
+            document.getElementById('weekDays').textContent = weekDays.size;
+            document.getElementById('weekVolume').textContent = weekVolume.toLocaleString();
+            document.getElementById('weekSets').textContent = weekSets;
+        }
+
+        // ==================== PWA 支持 ====================
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            deferredPrompt = e;
+            setTimeout(() => {
+                const banner = document.getElementById('installBanner');
+                if (banner && !window.matchMedia('(display-mode: standalone)').matches) {
+                    banner.classList.add('show');
+                }
+            }, 3000);
+        });
+
+        // ==================== 详细安装指南 ====================
+        function showInstallGuide() {
+            const modal = document.getElementById('installGuideModal');
+            if (modal) {
+                modal.classList.add('show');
+                // 隐藏简单的安装横幅
+                const banner = document.getElementById('installBanner');
+                if (banner) banner.classList.remove('show');
+            }
+        }
+
+        function closeInstallGuide() {
+            const modal = document.getElementById('installGuideModal');
+            if (modal) modal.classList.remove('show');
+        }
+
+        function installPWA() {
+            // 检测平台
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const isEdge = /Edg/i.test(navigator.userAgent);
+            
+            // 如果是 Android 但不是 Edge，显示详细指南推荐使用 Edge
+            if (isAndroid && !isEdge) {
+                showInstallGuide();
+                showToast('推荐使用 Edge 浏览器获得最佳体验');
+                return;
+            }
+            
+            // 如果有 deferredPrompt，尝试安装
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('用户接受了安装');
+                        showToast('安装成功！请从桌面打开应用');
+                    } else {
+                        console.log('用户拒绝了安装');
+                        // 如果拒绝，显示详细指南
+                        setTimeout(showInstallGuide, 500);
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                // 没有安装提示，显示详细指南
+                showInstallGuide();
+            }
+        }
+
+        function dismissInstall() {
+            document.getElementById('installBanner').classList.remove('show');
+        }
+
+        // ==================== 工具函数 ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ==================== 初始化 ====================
+        async function init() {
+            if (isInitialized) return;
+            
+            await db.init();
+            
+            const defaults = getDefaultTemplates();
+            const existing = await db.getTemplates();
+            
+            if (existing.length === 0) {
+                for (const t of defaults) {
                     await db.saveTemplate(t);
                 }
             }
-            if (data.records && Array.isArray(data.records)) {
-                for (const r of data.records) {
-                    await db.saveRecord(r);
-                }
-            }
             
-            showToast('数据已恢复');
+            window.addEventListener('online', () => {
+                document.getElementById('offlineBar').style.display = 'none';
+            });
+            window.addEventListener('offline', () => {
+                document.getElementById('offlineBar').style.display = 'block';
+            });
+            
             loadWeekStats();
-        } catch (e) {
-            showToast('导入失败：文件格式错误');
+            isInitialized = true;
         }
-        input.value = '';
-    }
 
-    async function clearAllData() {
-        if (!confirm('⚠️ 确定要清除所有数据吗？此操作不可恢复！')) return;
-        if (!confirm('再次确认：将删除所有模板和训练记录，确定吗？')) return;
+        window.addEventListener('load', init);
         
-        try {
-            await db.clearAll();
-            showToast('所有数据已清除');
-            showHome();
-        } catch (e) {
-            showToast('清除失败');
-        }
-    }
-
-    // ==================== 统计功能 ====================
-    async function loadWeekStats() {
-        const records = await db.getRecords();
-        const today = new Date();
-        const weekStart = new Date(today);
-        weekStart.setDate(today.getDate() - today.getDay());
-        weekStart.setHours(0, 0, 0, 0);
-        
-        let weekDays = new Set();
-        let weekVolume = 0;
-        let weekSets = 0;
-        
-        records.forEach(r => {
-            const recordDate = new Date(r.date);
-            if (recordDate >= weekStart && recordDate <= today) {
-                weekDays.add(r.date);
-                r.exercises.forEach(ex => {
-                    ex.sets.forEach(s => {
-                        weekVolume += (s.weight || 0) * (s.reps || 0);
-                        weekSets++;
-                    });
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
+                self.addEventListener('fetch', e => {
+                    e.respondWith(
+                        caches.match(e.request).then(response => {
+                            return response || fetch(e.request).catch(() => caches.match('/'));
+                        })
+                    );
                 });
-            }
-        });
-        
-        document.getElementById('weekDays').textContent = weekDays.size;
-        document.getElementById('weekVolume').textContent = weekVolume.toLocaleString();
-        document.getElementById('weekSets').textContent = weekSets;
-    }
-
-    // ==================== PWA 支持 ====================
-    let deferredPrompt = null;
-    
-    window.addEventListener('beforeinstallprompt', (e) => {
-        deferredPrompt = e;
-        setTimeout(() => {
-            const banner = document.getElementById('installBanner');
-            if (banner && !window.matchMedia('(display-mode: standalone)').matches) {
-                banner.classList.add('show');
-            }
-        }, 3000);
-    });
-
-    function installPWA() {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('用户接受了安装');
-                }
-                deferredPrompt = null;
-                document.getElementById('installBanner').classList.remove('show');
-            });
-        } else {
-            showToast('请使用浏览器菜单中的"安装应用"选项');
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
         }
-    }
-
-    function dismissInstall() {
-        document.getElementById('installBanner').classList.remove('show');
-    }
-
-    // ==================== 工具函数 ====================
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
-    }
-
-    // ==================== 初始化 ====================
-    async function init() {
-        if (isInitialized) return;
-        
-        await db.init();
-        
-        const defaults = getDefaultTemplates();
-        const existing = await db.getTemplates();
-        
-        if (existing.length === 0) {
-            for (const t of defaults) {
-                await db.saveTemplate(t);
-            }
-        }
-        
-        if (navigator.userAgent.includes('Via')) {
-            const warnings = document.querySelectorAll('.via-warning');
-            warnings.forEach(w => w.classList.remove('hidden'));
-        }
-        
-        window.addEventListener('online', () => {
-            document.getElementById('offlineBar').style.display = 'none';
-        });
-        window.addEventListener('offline', () => {
-            document.getElementById('offlineBar').style.display = 'block';
-        });
-        
-        loadWeekStats();
-        isInitialized = true;
-    }
-
-    window.addEventListener('load', init);
-    
-    if ('serviceWorker' in navigator) {
-        const swCode = `
-            self.addEventListener('install', e => self.skipWaiting());
-            self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-            self.addEventListener('fetch', e => {
-                e.respondWith(
-                    caches.match(e.request).then(response => {
-                        return response || fetch(e.request).catch(() => caches.match('/'));
-                    })
-                );
-            });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const swUrl = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(swUrl).catch(() => {});
-    }
-</script>
+    </script>
+</body>
+</html>
