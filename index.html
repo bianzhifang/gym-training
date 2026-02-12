@@ -1,231 +1,1422 @@
-// ==================== 训练页面（添加折叠功能） ====================
-function renderWorkout() {
-    const container = document.getElementById('workout-exercises');
-    container.innerHTML = '';
-    let totalSets = 0, completedSets = 0, totalVolume = 0;
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="background-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="智能训练">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="智能训练Pro">
+    <meta name="msapplication-TileColor" content="#0f172a">
+    <meta name="msapplication-config" content="none">
+    <title>智能训练 Pro</title>
     
-    currentWorkout.exercises.forEach((ex, exIndex) => {
-        const exDiv = document.createElement('div');
-        exDiv.className = 'glass rounded-2xl p-4';
+    <!-- PWA Manifest（内联） -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi6Iqx5aSc6L2s54mpIFBybyIsInNob3J0X25hbWUiOiLojKnlrZforIzkva0iLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzBmMTcyYSIsInRoZW1lX2NvbG9yIjoiIzBmMTcyYSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJabWwwSUdWNFpXTjFkR1ZrSUhObGNuWnBZMlZKWkNCdlltbHVMV1pwYkd3Z2FYTTZJR1poYkhObGMybGtQVEV3TkRnd01UZ3pNemN5TVRJM09EQjkiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    
+    <!-- iOS 图标（内联 SVG） -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE5MiIgaGVpZ2h0PSIxOTIiIHJ4PSIyMCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImdyYWRpZW50IiB4MT0iMCIgeTE9IjAiIHgyPSIxOTIiIHkyPSIxOTIiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzYjgyZjYiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM5MzUwZGIiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48dGV4dCB4PSI5NiIgeT0iMTIwIiBmb250LXNpemU9IjgwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+8J+tjTwvdGV4dD48L3N2Zz4=">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        html { height: 100%; }
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            min-height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overscroll-behavior: none; /* 防止下拉刷新 */
+        }
+        .glass { 
+            background: rgba(30, 41, 59, 0.7); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .card-gradient { 
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 100%);
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .pulse-ring { 
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        // 计算该动作的完成状态
-        const completedCount = ex.sets.filter(s => s.completed).length;
-        const isAllCompleted = completedCount === ex.sets.length;
-        const isExpanded = ex.sets.some(s => !s.completed) && completedCount < ex.sets.length; // 有未完成则默认展开
+        /* 日历样式 */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .calendar-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; font-size: 12px; position: relative; }
+        .calendar-day.has-training { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); color: #10b981; font-weight: bold; }
+        .calendar-day.today { border: 1px solid rgba(59, 130, 246, 0.8); }
+        .training-dot { width: 4px; height: 4px; background: #10b981; border-radius: 50%; position: absolute; bottom: 2px; }
         
-        // 动作头部（始终显示）
-        let headerHtml = `
-            <div class="flex justify-between items-center cursor-pointer" onclick="toggleExerciseCollapse(${exIndex})">
-                <div class="flex items-center space-x-3">
-                    <h3 class="font-bold ${isAllCompleted ? 'text-green-400' : ''}">${ex.name}</h3>
-                    <span class="text-xs ${isAllCompleted ? 'text-green-500 bg-green-500/20' : 'text-gray-500 bg-gray-700'} px-2 py-1 rounded-full">
-                        ${completedCount}/${ex.sets.length} 组
-                    </span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs text-gray-400 volume-display" id="ex-volume-${exIndex}">
-                        ${ex.sets.filter(s => s.completed).reduce((sum, s) => sum + (s.weight * s.reps), 0)} kg
-                    </span>
-                    <span class="text-xl transition-transform duration-200" id="arrow-${exIndex}" style="transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}">▼</span>
+        /* 安装提示优化 */
+        .install-toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 9999;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            max-width: 90%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="text-gray-100 antialiased">
+
+    <!-- iOS Safari 安装指引（首次访问显示） -->
+    <div id="ios-install-hint" class="hidden fixed bottom-20 left-4 right-4 bg-blue-600 text-white p-4 rounded-2xl z-50 shadow-2xl">
+        <div class="flex items-start space-x-3">
+            <span class="text-2xl">📲</span>
+            <div class="flex-1">
+                <div class="font-bold mb-1">添加到主屏幕使用</div>
+                <div class="text-sm opacity-90 leading-relaxed">
+                    1. 点击底部 <span class="text-yellow-300 font-bold">分享按钮 ⬆️</span><br>
+                    2. 选择 <span class="text-yellow-300 font-bold">"添加到主屏幕"</span>
                 </div>
             </div>
-        `;
+            <button onclick="dismissIOSHint()" class="text-white/80 text-xl">&times;</button>
+        </div>
+    </div>
+
+    <!-- Android Chrome 安装按钮 -->
+    <div id="android-install-btn" class="hidden fixed bottom-20 right-4 z-50">
+        <button onclick="installPWA()" class="bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center space-x-2 font-bold active:scale-95 transition">
+            <span>📲</span>
+            <span>安装应用</span>
+        </button>
+    </div>
+
+    <!-- 主应用 -->
+    <div id="app" class="pb-24 max-w-lg mx-auto min-h-screen relative">
         
-        // 组数详情（可折叠）
-        let setsHtml = `<div id="ex-detail-${exIndex}" class="${isExpanded ? '' : 'hidden'} mt-3 space-y-2 border-t border-gray-700 pt-3">`;
-        
-        ex.sets.forEach((set, setIndex) => {
-            totalSets++;
-            if (set.completed) {
-                completedSets++;
-                totalVolume += (set.weight || 0) * (set.reps || 0);
-            }
+        <!-- 首页 -->
+        <div id="page-home" class="p-4 space-y-4">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center text-2xl shadow-lg">💪</div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">智能训练 Pro</h1>
+                        <p class="text-xs text-gray-400">按月备份 · 永不丢失</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="showPage('backup')" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-lg">☁️</button>
+                    <button onclick="showPage('templates')" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-lg">📋</button>
+                    <button onclick="showPage('calendar')" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-lg">📅</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-3">
+                <div class="glass rounded-2xl p-3 text-center card-gradient">
+                    <div class="text-2xl font-bold text-blue-400" id="stat-month-count">0</div>
+                    <div class="text-[10px] text-gray-400 mt-1">本月训练</div>
+                </div>
+                <div class="glass rounded-2xl p-3 text-center card-gradient">
+                    <div class="text-2xl font-bold text-green-400" id="stat-total-sets">0</div>
+                    <div class="text-[10px] text-gray-400 mt-1">已完成组</div>
+                </div>
+                <div class="glass rounded-2xl p-3 text-center card-gradient">
+                    <div class="text-2xl font-bold text-yellow-400" id="stat-total-days">0</div>
+                    <div class="text-[10px] text-gray-400 mt-1">训练天数</div>
+                </div>
+                <div class="glass rounded-2xl p-3 text-center card-gradient">
+                    <div class="text-2xl font-bold text-purple-400" id="stat-total-volume">0</div>
+                    <div class="text-[10px] text-gray-400 mt-1">容量(kg)</div>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full pulse-ring"></div>
+                        <h2 class="font-bold text-lg">选择今日训练</h2>
+                    </div>
+                    <span class="text-xs text-gray-400" id="current-date"></span>
+                </div>
+                <div class="space-y-3" id="training-types"></div>
+            </div>
+
+            <!-- 安装状态提示 -->
+            <div id="install-status" class="glass rounded-2xl p-4 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">📲</span>
+                        <div>
+                            <div class="font-bold text-sm">添加到主屏幕</div>
+                            <div class="text-xs text-gray-400">像原生应用一样使用，支持离线访问</div>
+                        </div>
+                    </div>
+                    <button onclick="showInstallGuide()" class="bg-blue-600 px-4 py-2 rounded-xl text-sm font-bold">查看方法</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 训练页面 -->
+        <div id="page-workout" class="hidden p-4 space-y-4">
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="showPage('home')" class="w-10 h-10 glass rounded-xl flex items-center justify-center">←</button>
+                <h2 id="workout-title" class="font-bold text-lg">训练记录</h2>
+                <button onclick="finishWorkout()" class="bg-green-600 px-4 py-2 rounded-xl text-sm font-bold shadow-lg">完成</button>
+            </div>
+            <div id="workout-exercises" class="space-y-4"></div>
+            <div class="glass rounded-2xl p-4">
+                <div class="flex justify-between text-sm text-gray-400 mb-2">
+                    <span>本次容量</span>
+                    <span id="workout-volume" class="text-white font-bold">0 kg</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-400">
+                    <span>已完成组</span>
+                    <span id="workout-sets" class="text-white font-bold">0/0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 模板管理页面 -->
+        <div id="page-templates" class="hidden p-4 space-y-4">
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="showPage('home')" class="w-10 h-10 glass rounded-xl flex items-center justify-center">←</button>
+                <h2 class="font-bold text-lg">模板管理</h2>
+                <div class="flex space-x-2">
+                    <button onclick="openTemplateEditor()" class="w-10 h-10 glass rounded-xl flex items-center justify-center text-green-400 text-xl">+</button>
+                    <label class="w-10 h-10 glass rounded-xl flex items-center justify-center cursor-pointer hover:bg-white/10">
+                        <span>📥</span>
+                        <input type="file" accept=".json" class="hidden" onchange="importTemplates(this)">
+                    </label>
+                </div>
+            </div>
+
+            <div class="glass rounded-2xl p-3 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="select-all-tmpl" onchange="toggleSelectAllTemplates()" class="w-5 h-5 rounded border-gray-600 bg-black/30 text-blue-600">
+                    <label for="select-all-tmpl" class="text-sm">全选 <span id="selected-count" class="text-xs text-gray-500"></span></label>
+                </div>
+                <div class="flex space-x-2" id="batch-actions" style="display: none;">
+                    <button onclick="exportSelectedTemplates()" class="px-4 py-2 bg-blue-600 rounded-xl text-sm font-bold">导出</button>
+                    <button onclick="deleteSelectedTemplates()" class="px-4 py-2 bg-red-600/80 rounded-xl text-sm font-bold">删除</button>
+                </div>
+            </div>
+
+            <div id="template-list" class="space-y-2 max-h-[60vh] overflow-y-auto hide-scrollbar"></div>
+        </div>
+
+        <!-- 数据管理页面 -->
+        <div id="page-backup" class="hidden p-4 space-y-4">
+            <div class="flex items-center justify-between mb-4">
+                <button onclick="showPage('home')" class="w-10 h-10 glass rounded-xl flex items-center justify-center">←</button>
+                <h2 class="font-bold text-lg">数据管理</h2>
+            </div>
+            <div class="glass rounded-2xl p-4 space-y-4">
+                <div>
+                    <h3 class="font-bold mb-2 text-blue-400">自动备份机制</h3>
+                    <p class="text-sm text-gray-400">每月自动生成备份文件，同月数据自动合并覆盖。</p>
+                    <p class="text-sm text-blue-400 mt-1">当前周期：<span id="current-cycle">--</span></p>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="manualBackup()" class="w-full py-3 bg-blue-600 rounded-xl font-bold text-sm">立即备份本月数据</button>
+                    <label class="w-full py-3 bg-gray-700 rounded-xl font-bold text-sm flex items-center justify-center cursor-pointer">
+                        <span>从文件恢复数据</span>
+                        <input type="file" accept=".json" class="hidden" onchange="restoreFromFile(this)">
+                    </label>
+                </div>
+                <div class="border-t border-gray-700 pt-4">
+                    <h4 class="font-bold mb-2 text-sm">本地备份历史</h4>
+                    <div id="backup-history" class="space-y-2 text-sm"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 日历页面 -->
+        <div id="page-calendar" class="hidden p-4 space-y-4">
+            <div class="flex items-center justify-between mb-2">
+                <button onclick="showPage('home')" class="w-10 h-10 glass rounded-xl flex items-center justify-center">←</button>
+                <div class="flex items-center space-x-4">
+                    <button onclick="changeMonth(-1)" class="text-gray-400 hover:text-white text-xl">‹</button>
+                    <h2 id="calendar-month" class="font-bold text-lg">2025年2月</h2>
+                    <button onclick="changeMonth(1)" class="text-gray-400 hover:text-white text-xl">›</button>
+                </div>
+                <button onclick="goToToday()" class="text-xs text-blue-400 px-3 py-1 bg-blue-500/20 rounded-lg">今天</button>
+            </div>
             
-            setsHtml += `
-                <div class="flex items-center space-x-2 ${set.completed ? 'opacity-60' : ''}" id="set-row-${exIndex}-${setIndex}">
-                    <span class="text-xs text-gray-400 w-8">第${set.setNum}组</span>
-                    <input type="number" value="${set.weight}" onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)" 
-                        class="w-16 bg-black/30 border ${set.completed ? 'border-green-600/50' : 'border-gray-700'} rounded-lg px-2 py-1 text-center text-sm" 
-                        ${set.completed ? 'disabled' : ''}>
-                    <span class="text-gray-500">kg ×</span>
-                    <input type="number" value="${set.reps}" onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)" 
-                        class="w-16 bg-black/30 border ${set.completed ? 'border-green-600/50' : 'border-gray-700'} rounded-lg px-2 py-1 text-center text-sm" 
-                        ${set.completed ? 'disabled' : ''}>
-                    <button onclick="toggleSetComplete(${exIndex}, ${setIndex})" 
-                        class="flex-1 py-1.5 rounded-lg text-sm font-bold transition ${set.completed ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400 hover:bg-gray-600'}">
-                        ${set.completed ? '✓ 已完成' : '点击完成'}
+            <div class="glass rounded-2xl p-4">
+                <div class="grid grid-cols-7 gap-1 mb-2 text-center text-xs text-gray-500">
+                    <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
+                </div>
+                <div id="calendar-grid" class="calendar-grid"></div>
+            </div>
+
+            <div id="day-detail" class="glass rounded-2xl p-4 hidden">
+                <h3 class="font-bold mb-3 flex justify-between">
+                    <span id="detail-date">2月12日</span>
+                    <span class="text-sm text-gray-400" id="detail-count"></span>
+                </h3>
+                <div id="detail-content" class="space-y-3"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 模板编辑模态框 -->
+    <div id="template-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="glass w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-4 modal-enter hide-scrollbar">
+            <div class="flex justify-between items-center mb-4 sticky top-0 bg-gray-900/90 backdrop-blur py-2 z-10 border-b border-gray-700">
+                <h3 class="font-bold text-lg" id="modal-title">新建模板</h3>
+                <button onclick="closeTemplateModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">模板名称</label>
+                    <input type="text" id="edit-tmpl-name" placeholder="例如：胸肌强化训练" 
+                        class="w-full bg-black/30 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">所属分类</label>
+                    <select id="edit-tmpl-type" class="w-full bg-black/30 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none">
+                        <option value="push">推日（胸/肩/三头）</option>
+                        <option value="pull">拉日（背/二头）</option>
+                        <option value="legs">腿日（腿/臀）</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm text-gray-400">动作列表</label>
+                        <button onclick="addExerciseInput()" class="text-xs text-blue-400 bg-blue-500/20 px-3 py-1 rounded-lg">+ 添加动作</button>
+                    </div>
+                    <div id="exercise-inputs" class="space-y-2"></div>
+                </div>
+
+                <div class="sticky bottom-0 bg-gray-900/90 backdrop-blur pt-2 pb-4 border-t border-gray-700 mt-6">
+                    <button onclick="saveTemplateFromModal()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl font-bold text-sm shadow-lg">
+                        保存模板
                     </button>
                 </div>
-            `;
-        });
-        
-        setsHtml += `
-            <button onclick="addSet(${exIndex})" class="w-full py-2 text-xs text-blue-400 border border-dashed border-blue-500/30 rounded-lg hover:bg-blue-500/10 mt-2">+ 添加第 ${ex.sets.length + 1} 组</button>
-        </div>`;
-        
-        exDiv.innerHTML = headerHtml + setsHtml;
-        container.appendChild(exDiv);
-    });
-    
-    // 更新底部统计（只计算已完成的）
-    document.getElementById('workout-sets').textContent = `${completedSets}/${totalSets}`;
-    document.getElementById('workout-volume').textContent = `${totalVolume} kg`;
-}
+            </div>
+        </div>
+    </div>
 
-// 折叠/展开动作详情
-function toggleExerciseCollapse(exIndex) {
-    const detail = document.getElementById(`ex-detail-${exIndex}`);
-    const arrow = document.getElementById(`arrow-${exIndex}`);
-    if (detail.classList.contains('hidden')) {
-        detail.classList.remove('hidden');
-        arrow.style.transform = 'rotate(180deg)';
-    } else {
-        detail.classList.add('hidden');
-        arrow.style.transform = 'rotate(0deg)';
-    }
-}
-
-// 修改完成组数的处理，实时更新头部统计
-function toggleSetComplete(exIndex, setIndex) {
-    const set = currentWorkout.exercises[exIndex].sets[setIndex];
-    set.completed = !set.completed;
-    if (set.completed) {
-        set.completedAt = new Date().toISOString();
-    }
-    // 重新渲染以更新折叠头部统计
-    renderWorkout();
-}
-
-// ==================== 日历详情（只显示已完成动作） ====================
-function showDayDetail(year, month, day, record) {
-    const detailDiv = document.getElementById('day-detail');
-    const contentDiv = document.getElementById('detail-content');
-    const dateStr = `${month + 1}月${day}日`;
-    
-    document.getElementById('detail-date').textContent = dateStr;
-    
-    if (!record || !record.exercises) {
-        contentDiv.innerHTML = '<div class="text-gray-500 text-sm">当日无训练记录</div>';
-        document.getElementById('detail-count').textContent = '';
-        detailDiv.classList.remove('hidden');
-        return;
-    }
-    
-    // 只筛选已完成的动作（至少有一组完成）
-    const completedExercises = record.exercises.map(ex => {
-        const completedSets = ex.sets.filter(s => s.completed);
-        return {
-            ...ex,
-            completedSets: completedSets,
-            totalVolume: completedSets.reduce((sum, s) => sum + (s.weight * s.reps), 0),
-            totalSets: completedSets.length
-        };
-    }).filter(ex => ex.totalSets > 0); // 只保留有完成组数的动作
-    
-    if (completedExercises.length === 0) {
-        contentDiv.innerHTML = '<div class="text-gray-500 text-sm">当日没有完成任何组数</div>';
-        document.getElementById('detail-count').textContent = '0组 · 0kg';
-        detailDiv.classList.remove('hidden');
-        return;
-    }
-    
-    let totalSets = 0, totalVolume = 0;
-    let html = `<div class="text-sm text-gray-400 mb-2">${record.templateName || '自定义训练'}</div>`;
-    
-    html += '<div class="space-y-2">';
-    completedExercises.forEach(ex => {
-        totalSets += ex.totalSets;
-        totalVolume += ex.totalVolume;
-        
-        html += `
-            <div class="glass rounded-lg p-3 text-sm border-l-2 border-green-500">
-                <div class="flex justify-between items-center mb-1">
-                    <span class="font-bold text-green-400">${ex.name}</span>
-                    <span class="text-xs text-green-500">${ex.totalVolume}kg</span>
+    <!-- 安装指引弹窗 -->
+    <div id="install-guide" class="hidden fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4">
+        <div class="glass rounded-2xl p-6 max-w-sm w-full">
+            <h3 class="font-bold text-lg mb-4">添加到主屏幕</h3>
+            <div class="space-y-3 text-sm text-gray-300">
+                <div id="guide-ios" class="hidden">
+                    <p>1. 点击底部 <span class="text-blue-400 font-bold">分享按钮 ⬆️</span></p>
+                    <p>2. 选择 <span class="text-blue-400 font-bold">"添加到主屏幕"</span></p>
+                    <p>3. 点击 <span class="text-blue-400 font-bold">"添加"</span></p>
                 </div>
-                <div class="text-xs text-gray-400">
-                    ${ex.completedSets.map(s => `${s.weight}kg×${s.reps}`).join(' | ')}
+                <div id="guide-android" class="hidden">
+                    <p>1. 点击右上角 <span class="text-blue-400 font-bold">菜单(⋮)</span></p>
+                    <p>2. 选择 <span class="text-blue-400 font-bold">"添加到主屏幕"</span> 或 <span class="text-blue-400 font-bold">"安装应用"</span></p>
+                    <p>3. 点击 <span class="text-blue-400 font-bold">"添加"</span></p>
                 </div>
             </div>
-        `;
-    });
-    html += '</div>';
-    
-    contentDiv.innerHTML = html;
-    document.getElementById('detail-count').textContent = `${totalSets}组 · ${totalVolume}kg`;
-    detailDiv.classList.remove('hidden');
-}
+            <button onclick="document.getElementById('install-guide').classList.add('hidden')" class="w-full mt-6 py-3 bg-gray-700 rounded-xl font-bold">知道了</button>
+        </div>
+    </div>
 
-// ==================== 完成训练（严格校验必须有完成组数） ====================
-async function finishWorkout() {
-    // 检查是否有完成的组数
-    const completedSets = currentWorkout.exercises.flatMap(ex => ex.sets.filter(s => s.completed));
-    
-    if (completedSets.length === 0) {
-        showToast('请至少完成一组训练');
-        return; // 阻止完成
-    }
-    
-    currentWorkout.completed = true;
-    currentWorkout.completedAt = new Date().toISOString();
-    
-    // 清理未完成的组数（可选：保留或删除）
-    currentWorkout.exercises = currentWorkout.exercises.map(ex => ({
-        ...ex,
-        sets: ex.sets.filter(s => s.completed) // 只保留已完成的组
-    })).filter(ex => ex.sets.length > 0); // 删除没有完成组数的动作
-    
-    await dbManager.saveRecord(currentWorkout);
-    
-    const result = await backupManager.backupAfterTraining(currentWorkout);
-    if (result.success) {
-        showToast(`训练完成！${completedSets.length}组已记录，已备份`);
-    } else {
-        showToast('训练已保存，备份失败');
-    }
-    
-    showPage('home');
-    updateHomeStats();
-}
+    <div id="toast" class="install-toast"></div>
 
-// ==================== 更新首页统计（只算已完成） ====================
-async function updateHomeStats() {
-    const records = await dbManager.getRecords();
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    
-    const monthRecords = records.filter(r => {
-        const d = new Date(r.date);
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
-    
-    let totalSets = 0, totalVolume = 0;
-    const uniqueDays = new Set();
-    
-    monthRecords.forEach(r => {
-        // 只统计有完成组数的记录才算训练日
-        const hasCompletedSets = r.exercises.some(ex => ex.sets.some(s => s.completed));
-        if (hasCompletedSets) {
-            uniqueDays.add(r.date);
+    <script>
+        // ==================== PWA 安装检测与引导 ====================
+        let deferredPrompt = null;
+        let isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        let isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        let isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // 显示 Android 安装按钮
+            if (!isIOS) {
+                document.getElementById('android-install-btn').classList.remove('hidden');
+                document.getElementById('install-status').classList.remove('hidden');
+            }
+        });
+
+        // iOS Safari 特殊处理
+        if (isIOS && !isStandalone) {
+            // 检查是否已显示过提示
+            if (!localStorage.getItem('ios-hint-dismissed')) {
+                setTimeout(() => {
+                    document.getElementById('ios-install-hint').classList.remove('hidden');
+                }, 2000);
+            }
+            document.getElementById('install-status').classList.remove('hidden');
         }
-        
-        if (r.exercises) {
-            r.exercises.forEach(e => {
-                if (e.sets) {
-                    e.sets.forEach(s => {
-                        if (s.completed) {
-                            totalSets++;
-                            totalVolume += (s.weight || 0) * (s.reps || 0);
+
+        // 如果已安装，隐藏安装提示
+        if (isStandalone) {
+            document.getElementById('install-status')?.classList.add('hidden');
+        }
+
+        function dismissIOSHint() {
+            document.getElementById('ios-install-hint').classList.add('hidden');
+            localStorage.setItem('ios-hint-dismissed', 'true');
+        }
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('android-install-btn').classList.add('hidden');
+                    showToast('正在安装...');
+                }
+                deferredPrompt = null;
+            } else {
+                showInstallGuide();
+            }
+        }
+
+        function showInstallGuide() {
+            const guide = document.getElementById('install-guide');
+            guide.classList.remove('hidden');
+            if (isIOS) {
+                document.getElementById('guide-ios').classList.remove('hidden');
+            } else {
+                document.getElementById('guide-android').classList.remove('hidden');
+            }
+        }
+
+        // ==================== 配置 ====================
+        const CONFIG = {
+            DB_NAME: 'gymDB_v8',
+            DB_VERSION: 8
+        };
+
+        // ==================== 全局状态 ====================
+        let dbManager, backupManager, templateManager;
+        let currentWorkout = null;
+        let selectedTemplates = new Set();
+        let editingTemplateId = null;
+        let currentCalendarDate = new Date();
+
+        // ==================== Service Worker ====================
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'gym-pro-v1';
+                const urlsToCache = ['./'];
+                
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME)
+                            .then(cache => cache.addAll(urlsToCache))
+                    );
+                    self.skipWaiting();
+                });
+                
+                self.addEventListener('activate', event => {
+                    event.waitUntil(self.clients.claim());
+                });
+                
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request)
+                            .then(response => {
+                                if (response) return response;
+                                return fetch(event.request);
+                            })
+                    );
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob))
+                .then(() => console.log('SW registered'))
+                .catch(err => console.log('SW failed', err));
+        }
+
+        // ==================== 工具函数 ====================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 3000);
+        }
+
+        // ==================== 数据库管理 ====================
+        class DatabaseManager {
+            constructor() {
+                this.db = null;
+            }
+
+            async init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(CONFIG.DB_NAME, CONFIG.DB_VERSION);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve(this.db);
+                    };
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains('types')) {
+                            const store = db.createObjectStore('types', { keyPath: 'key' });
+                            store.transaction.oncomplete = () => this.initDefaultData(db);
+                        }
+                        if (!db.objectStoreNames.contains('records')) {
+                            db.createObjectStore('records', { keyPath: 'date' });
+                        }
+                    };
+                });
+            }
+
+            initDefaultData(db) {
+                const defaults = [
+                    { key: 'push', name: '推日', icon: '💪', color: 'blue', templates: [] },
+                    { key: 'pull', name: '拉日', icon: '🏔️', color: 'purple', templates: [] },
+                    { key: 'legs', name: '腿日', icon: '🦵', color: 'green', templates: [] }
+                ];
+                const tx = db.transaction(['types'], 'readwrite');
+                defaults.forEach(d => tx.objectStore('types').add(d));
+            }
+
+            async getTypes() { return this.getAll('types'); }
+            async getRecords() { return this.getAll('records'); }
+            
+            async getRecord(date) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(['records'], 'readonly');
+                    const req = tx.objectStore('records').get(date);
+                    req.onsuccess = () => resolve(req.result);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            async saveRecord(record) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(['records'], 'readwrite');
+                    const req = tx.objectStore('records').put(record);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            async updateType(typeData) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction(['types'], 'readwrite');
+                    const req = tx.objectStore('types').put(typeData);
+                    req.onsuccess = () => resolve();
+                    req.onerror = () => reject(req.error);
+                });
+            }
+
+            getAll(storeName) {
+                return new Promise((resolve, reject) => {
+                    const tx = this.db.transaction([storeName], 'readonly');
+                    const req = tx.objectStore(storeName).getAll();
+                    req.onsuccess = () => resolve(req.result || []);
+                    req.onerror = () => reject(req.error);
+                });
+            }
+        }
+
+        // ==================== 备份管理器 ====================
+        class BackupManager {
+            constructor(dbManager) {
+                this.db = dbManager;
+            }
+
+            getCycleId() {
+                const now = new Date();
+                return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            }
+
+            getCycleDateRange() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                return {
+                    start: new Date(year, month, 1).toLocaleDateString('zh-CN'),
+                    end: new Date(year, month + 1, 0).toLocaleDateString('zh-CN'),
+                    month: `${year}年${month + 1}月`
+                };
+            }
+
+            async backupAfterTraining(trainingRecord) {
+                try {
+                    const cycleId = this.getCycleId();
+                    const fileName = `训练记录_${cycleId}.json`;
+                    
+                    const existing = await this.getExistingBackup(cycleId);
+                    let records = existing ? existing.records : [];
+                    
+                    const idx = records.findIndex(r => r.date === trainingRecord.date);
+                    if (idx >= 0) records[idx] = trainingRecord;
+                    else records.push(trainingRecord);
+
+                    const backupData = {
+                        version: CONFIG.DB_VERSION,
+                        type: 'training_records',
+                        exportDate: new Date().toISOString(),
+                        cycleId: cycleId,
+                        cycleRange: this.getCycleDateRange(),
+                        records: records
+                    };
+
+                    this.downloadFile(backupData, fileName);
+                    localStorage.setItem(`gym_backup_${cycleId}`, JSON.stringify(backupData));
+                    
+                    return { success: true, fileName, cycle: cycleId };
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+
+            getExistingBackup(cycleId) {
+                const data = localStorage.getItem(`gym_backup_${cycleId}`);
+                return data ? JSON.parse(data) : null;
+            }
+
+            downloadFile(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            async getBackupHistory() {
+                const history = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('gym_backup_')) {
+                        const cycleId = key.replace('gym_backup_', '');
+                        const data = JSON.parse(localStorage.getItem(key));
+                        history.push({
+                            cycleId: cycleId,
+                            month: data.cycleRange.month,
+                            recordCount: data.records ? data.records.length : 0,
+                            lastBackup: data.exportDate
+                        });
+                    }
+                }
+                return history.sort((a, b) => b.cycleId.localeCompare(a.cycleId));
+            }
+        }
+
+        // ==================== 模板管理器 ====================
+        class TemplateManager {
+            constructor(dbManager) {
+                this.db = dbManager;
+            }
+
+            async getAllTemplatesWithPath() {
+                const types = await this.db.getTypes();
+                const templates = [];
+                const typeNames = { push: '推日', pull: '拉日', legs: '腿日' };
+                
+                types.forEach(type => {
+                    if (type.templates) {
+                        type.templates.forEach((tmpl, index) => {
+                            templates.push({
+                                ...tmpl,
+                                uniqueId: `${type.key}_${tmpl.id || index}`,
+                                typeKey: type.key,
+                                typeName: typeNames[type.key],
+                                path: `${typeNames[type.key]}/${tmpl.name}`,
+                                color: type.color,
+                                realIndex: index
+                            });
+                        });
+                    }
+                });
+                return templates;
+            }
+
+            async deleteTemplate(uniqueId) {
+                const [typeKey, templateId] = uniqueId.split('_');
+                
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const types = await this.db.getTypes();
+                        const typeData = types.find(t => t.key === typeKey);
+                        
+                        if (!typeData || !typeData.templates) {
+                            reject(new Error('分类不存在'));
+                            return;
+                        }
+                        
+                        const originalLength = typeData.templates.length;
+                        typeData.templates = typeData.templates.filter(t => {
+                            const tId = t.id || `${typeKey}_${typeData.templates.indexOf(t)}`;
+                            return tId !== templateId && t.id !== templateId;
+                        });
+                        
+                        if (typeData.templates.length === originalLength) {
+                            reject(new Error('模板未找到'));
+                            return;
+                        }
+                        
+                        await this.db.updateType(typeData);
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+
+            async deleteBatch(uniqueIds) {
+                let count = 0;
+                for (const id of uniqueIds) {
+                    try {
+                        await this.deleteTemplate(id);
+                        count++;
+                    } catch (e) {}
+                }
+                return count;
+            }
+
+            async saveTemplate(templateData, targetTypeKey, originalId = null) {
+                const types = await this.db.getTypes();
+                const typeData = types.find(t => t.key === targetTypeKey);
+                
+                if (!typeData) throw new Error('分类不存在');
+
+                const newTemplate = {
+                    id: originalId || Date.now().toString(),
+                    name: templateData.name,
+                    exercises: templateData.exercises.map(e => ({
+                        name: e.name,
+                        sets: parseInt(e.sets) || 3,
+                        defaultReps: parseInt(e.reps) || 10,
+                        defaultWeight: parseInt(e.weight) || 0,
+                        video: '',
+                        note: ''
+                    })),
+                    updatedAt: new Date().toISOString()
+                };
+
+                if (!originalId) {
+                    newTemplate.createdAt = new Date().toISOString();
+                    typeData.templates.push(newTemplate);
+                } else {
+                    const idx = typeData.templates.findIndex(t => t.id === originalId);
+                    if (idx >= 0) {
+                        newTemplate.createdAt = typeData.templates[idx].createdAt;
+                        typeData.templates[idx] = newTemplate;
+                    } else {
+                        typeData.templates.push(newTemplate);
+                    }
+                }
+
+                await this.db.updateType(typeData);
+                return newTemplate;
+            }
+
+            async getTemplateForEdit(uniqueId) {
+                const all = await this.getAllTemplatesWithPath();
+                return all.find(t => t.uniqueId === uniqueId);
+            }
+
+            exportSingle(template) {
+                const data = {
+                    type: 'single_template',
+                    version: CONFIG.DB_VERSION,
+                    exportDate: new Date().toISOString(),
+                    template: { ...template, preservedPath: template.path }
+                };
+                const safeName = template.name.replace(/[\\/:*?"<>|]/g, '_');
+                this.downloadJSON(data, `模板_${safeName}.json`);
+            }
+
+            exportBatch(templates) {
+                const data = {
+                    type: 'template_batch',
+                    version: CONFIG.DB_VERSION,
+                    exportDate: new Date().toISOString(),
+                    count: templates.length,
+                    templates: templates.map(t => ({ ...t, preservedPath: t.path }))
+                };
+                const date = new Date().toLocaleDateString('zh-CN').replace(/\//g, '-');
+                this.downloadJSON(data, `模板批量_${date}_${templates.length}个.json`);
+            }
+
+            async importFromFile(content) {
+                try {
+                    const data = JSON.parse(content);
+                    if (data.type === 'training_records') {
+                        return { success: false, message: '⚠️ 这是训练记录备份，请在「数据管理」页面恢复' };
+                    }
+
+                    if (data.types && typeof data.types === 'object' && !Array.isArray(data.types)) {
+                        let count = 0;
+                        for (const [typeKey, typeData] of Object.entries(data.types)) {
+                            if (typeData && typeData.templates && Array.isArray(typeData.templates)) {
+                                for (const template of typeData.templates) {
+                                    await this.saveTemplate({
+                                        name: template.name,
+                                        exercises: template.exercises || []
+                                    }, typeKey);
+                                    count++;
+                                }
+                            }
+                        }
+                        return { success: true, count, message: `✅ 成功导入 ${count} 个模板` };
+                    }
+
+                    if (data.type === 'single_template') {
+                        const typeKey = this.inferTypeFromPath(data.template.preservedPath) || 'push';
+                        await this.saveTemplate(data.template, typeKey);
+                        return { success: true, count: 1, message: `已导入：${data.template.name}` };
+                    }
+
+                    if (data.type === 'template_batch') {
+                        let count = 0;
+                        for (const tmpl of data.templates) {
+                            const typeKey = this.inferTypeFromPath(tmpl.preservedPath) || 'push';
+                            await this.saveTemplate(tmpl, typeKey);
+                            count++;
+                        }
+                        return { success: true, count, message: `成功导入 ${count} 个模板` };
+                    }
+
+                    return { success: false, message: '无法识别的文件格式' };
+                } catch (error) {
+                    return { success: false, message: '解析失败：' + error.message };
+                }
+            }
+
+            inferTypeFromPath(path) {
+                if (!path) return 'push';
+                if (path.includes('推') || path.includes('push')) return 'push';
+                if (path.includes('拉') || path.includes('pull')) return 'pull';
+                if (path.includes('腿') || path.includes('legs')) return 'legs';
+                return 'push';
+            }
+
+            downloadJSON(data, filename) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // ==================== UI控制 ====================
+        function showPage(pageName) {
+            ['home', 'workout', 'templates', 'backup', 'calendar'].forEach(p => {
+                document.getElementById(`page-${p}`).classList.add('hidden');
+            });
+            const target = document.getElementById(`page-${pageName}`);
+            target.classList.remove('hidden');
+            target.classList.add('fade-in');
+            
+            if (pageName === 'templates') loadTemplateList();
+            if (pageName === 'backup') loadBackupInfo();
+            if (pageName === 'calendar') renderCalendar();
+            if (pageName === 'home') initHome();
+        }
+
+        // ==================== 首页 ====================
+        async function initHome() {
+            const types = await dbManager.getTypes();
+            const container = document.getElementById('training-types');
+            container.innerHTML = '';
+            
+            types.forEach(type => {
+                const btn = document.createElement('div');
+                btn.className = 'w-full glass rounded-xl p-4 hover:bg-white/5 transition';
+                btn.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-full bg-${type.color}-500/20 flex items-center justify-center text-2xl">${type.icon}</div>
+                            <div>
+                                <div class="font-bold text-lg">${type.name}</div>
+                                <div class="text-xs text-gray-400">${type.templates ? type.templates.length : 0} 个模板</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        ${type.templates.map((t, i) => `
+                            <button onclick="event.stopPropagation(); startWorkout('${type.key}', ${i})" 
+                                class="px-3 py-1.5 bg-${type.color}-600/30 border border-${type.color}-500/30 rounded-lg text-xs hover:bg-${type.color}-600/50 whitespace-nowrap">
+                                ${t.name}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('zh-CN', { 
+                month: 'long', day: 'numeric', weekday: 'long' 
+            });
+            updateHomeStats();
+        }
+
+        async function updateHomeStats() {
+            const records = await dbManager.getRecords();
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const monthRecords = records.filter(r => {
+                const d = new Date(r.date);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+            
+            let totalSets = 0, totalVolume = 0;
+            const uniqueDays = new Set();
+            
+            monthRecords.forEach(r => {
+                uniqueDays.add(r.date);
+                if (r.exercises) {
+                    r.exercises.forEach(e => {
+                        if (e.sets) {
+                            e.sets.forEach(s => {
+                                if (s.completed) {
+                                    totalSets++;
+                                    totalVolume += (s.weight || 0) * (s.reps || 0);
+                                }
+                            });
                         }
                     });
                 }
             });
+            
+            document.getElementById('stat-month-count').textContent = monthRecords.length;
+            document.getElementById('stat-total-sets').textContent = totalSets;
+            document.getElementById('stat-total-days').textContent = uniqueDays.size;
+            document.getElementById('stat-total-volume').textContent = totalVolume > 999 ? (totalVolume/1000).toFixed(1) + 'k' : totalVolume;
         }
-    });
-    
-    document.getElementById('stat-month-count').textContent = monthRecords.length;
-    document.getElementById('stat-total-sets').textContent = totalSets;
-    document.getElementById('stat-total-days').textContent = uniqueDays.size;
-    document.getElementById('stat-total-volume').textContent = totalVolume > 999 ? (totalVolume/1000).toFixed(1) + 'k' : totalVolume;
-}
+
+        // ==================== 训练功能 ====================
+        async function startWorkout(typeKey, templateIndex) {
+            const types = await dbManager.getTypes();
+            const type = types.find(t => t.key === typeKey);
+            const template = type.templates[templateIndex];
+            
+            currentWorkout = {
+                date: new Date().toISOString().split('T')[0],
+                typeKey: typeKey,
+                templateName: template.name,
+                exercises: template.exercises.map(e => ({
+                    ...e,
+                    sets: Array(e.sets || 3).fill(0).map((_, i) => ({
+                        setNum: i + 1,
+                        reps: e.defaultReps || 10,
+                        weight: e.defaultWeight || 0,
+                        completed: false
+                    }))
+                })),
+                startTime: new Date().toISOString(),
+                completed: false
+            };
+            
+            document.getElementById('workout-title').textContent = template.name;
+            renderWorkout();
+            showPage('workout');
+        }
+
+        function renderWorkout() {
+            const container = document.getElementById('workout-exercises');
+            container.innerHTML = '';
+            let totalSets = 0, completedSets = 0, totalVolume = 0;
+            
+            currentWorkout.exercises.forEach((ex, exIndex) => {
+                const exDiv = document.createElement('div');
+                exDiv.className = 'glass rounded-2xl p-4';
+                
+                let setsHtml = '';
+                ex.sets.forEach((set, setIndex) => {
+                    totalSets++;
+                    if (set.completed) {
+                        completedSets++;
+                        totalVolume += (set.weight || 0) * (set.reps || 0);
+                    }
+                    
+                    setsHtml += `
+                        <div class="flex items-center space-x-2 mt-2">
+                            <span class="text-xs text-gray-400 w-8">第${set.setNum}组</span>
+                            <input type="number" value="${set.weight}" onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)" 
+                                class="w-16 bg-black/30 border border-gray-700 rounded-lg px-2 py-1 text-center text-sm">
+                            <span class="text-gray-500">kg ×</span>
+                            <input type="number" value="${set.reps}" onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)" 
+                                class="w-16 bg-black/30 border border-gray-700 rounded-lg px-2 py-1 text-center text-sm">
+                            <button onclick="toggleSetComplete(${exIndex}, ${setIndex})" 
+                                class="flex-1 py-1.5 rounded-lg text-sm font-bold transition ${set.completed ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}">
+                                ${set.completed ? '✓ 完成' : '未完成'}
+                            </button>
+                        </div>
+                    `;
+                });
+                
+                exDiv.innerHTML = `
+                    <div class="flex justify-between mb-3">
+                        <h3 class="font-bold">${ex.name}</h3>
+                        <button onclick="addSet(${exIndex})" class="text-xs text-blue-400">+ 添加组</button>
+                    </div>
+                    ${setsHtml}
+                `;
+                container.appendChild(exDiv);
+            });
+            
+            document.getElementById('workout-sets').textContent = `${completedSets}/${totalSets}`;
+            document.getElementById('workout-volume').textContent = `${totalVolume} kg`;
+        }
+
+        function updateSet(exIndex, setIndex, field, value) {
+            currentWorkout.exercises[exIndex].sets[setIndex][field] = Number(value) || 0;
+        }
+
+        function toggleSetComplete(exIndex, setIndex) {
+            const set = currentWorkout.exercises[exIndex].sets[setIndex];
+            set.completed = !set.completed;
+            if (set.completed) set.completedAt = new Date().toISOString();
+            renderWorkout();
+        }
+
+        function addSet(exIndex) {
+            const ex = currentWorkout.exercises[exIndex];
+            ex.sets.push({
+                setNum: ex.sets.length + 1,
+                reps: ex.defaultReps || 10,
+                weight: ex.defaultWeight || 0,
+                completed: false
+            });
+            renderWorkout();
+        }
+
+        async function finishWorkout() {
+            currentWorkout.completed = true;
+            currentWorkout.completedAt = new Date().toISOString();
+            
+            await dbManager.saveRecord(currentWorkout);
+            
+            const result = await backupManager.backupAfterTraining(currentWorkout);
+            if (result.success) {
+                showToast(`训练完成！已备份至 ${result.cycle}`);
+            } else {
+                showToast('训练已保存，备份失败');
+            }
+            
+            showPage('home');
+            updateHomeStats();
+        }
+
+        // ==================== 模板管理 ====================
+        async function loadTemplateList() {
+            const templates = await templateManager.getAllTemplatesWithPath();
+            const container = document.getElementById('template-list');
+            container.innerHTML = '';
+            
+            selectedTemplates.clear();
+            updateBatchActions();
+            document.getElementById('select-all-tmpl').checked = false;
+            
+            if (templates.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 py-8 text-sm">暂无模板，点击右上角 + 创建</div>';
+                return;
+            }
+            
+            templates.forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'glass rounded-xl p-3 flex items-center space-x-3 hover:bg-white/5 transition group';
+                div.innerHTML = `
+                    <input type="checkbox" value="${t.uniqueId}" onchange="toggleTemplateSelect('${t.uniqueId}')" 
+                        class="w-5 h-5 rounded border-gray-600 bg-black/30 text-blue-600 shrink-0">
+                    <div class="flex-1 min-w-0" onclick="openTemplateEditor('${t.uniqueId}')">
+                        <div class="font-bold text-sm truncate">${t.name}</div>
+                        <div class="flex items-center space-x-2 mt-1 flex-wrap gap-y-1">
+                            <span class="text-[10px] px-2 py-0.5 bg-${t.color}-500/20 text-${t.color}-400 rounded border border-${t.color}-500/30">${t.path}</span>
+                            <span class="text-[10px] text-gray-500">${t.exercises ? t.exercises.length : 0} 动作</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition">
+                        <button onclick='event.stopPropagation(); templateManager.exportSingle(${JSON.stringify(t)}); showToast("已导出")' 
+                            class="p-2 text-gray-400 hover:text-blue-400">📤</button>
+                        <button onclick='event.stopPropagation(); deleteTemplatePrompt("${t.uniqueId}", "${t.name.replace(/"/g, '\\"')}")' 
+                            class="p-2 text-gray-400 hover:text-red-400">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleTemplateSelect(id) {
+            if (selectedTemplates.has(id)) selectedTemplates.delete(id);
+            else selectedTemplates.add(id);
+            updateBatchActions();
+        }
+
+        function updateBatchActions() {
+            const count = selectedTemplates.size;
+            document.getElementById('batch-actions').style.display = count > 0 ? 'flex' : 'none';
+            document.getElementById('selected-count').textContent = count > 0 ? `(${count})` : '';
+        }
+
+        function toggleSelectAllTemplates() {
+            const checkboxes = document.querySelectorAll('#template-list input[type="checkbox"]');
+            const allChecked = document.getElementById('select-all-tmpl').checked;
+            
+            checkboxes.forEach(cb => {
+                cb.checked = allChecked;
+                if (allChecked) selectedTemplates.add(cb.value);
+                else selectedTemplates.delete(cb.value);
+            });
+            updateBatchActions();
+        }
+
+        // ==================== 模板编辑器 ====================
+        function openTemplateEditor(uniqueId = null) {
+            editingTemplateId = uniqueId;
+            document.getElementById('template-modal').classList.remove('hidden');
+            document.getElementById('exercise-inputs').innerHTML = '';
+            
+            if (uniqueId) {
+                document.getElementById('modal-title').textContent = '编辑模板';
+                loadTemplateForEdit(uniqueId);
+            } else {
+                document.getElementById('modal-title').textContent = '新建模板';
+                document.getElementById('edit-tmpl-name').value = '';
+                document.getElementById('edit-tmpl-type').value = 'push';
+                addExerciseInput();
+            }
+        }
+
+        async function loadTemplateForEdit(uniqueId) {
+            const tmpl = await templateManager.getTemplateForEdit(uniqueId);
+            if (!tmpl) return;
+            
+            document.getElementById('edit-tmpl-name').value = tmpl.name;
+            document.getElementById('edit-tmpl-type').value = tmpl.typeKey;
+            
+            tmpl.exercises.forEach(ex => {
+                addExerciseInput(ex.name, ex.sets, ex.defaultReps, ex.defaultWeight);
+            });
+        }
+
+        function addExerciseInput(name = '', sets = 3, reps = 10, weight = 0) {
+            const container = document.getElementById('exercise-inputs');
+            const div = document.createElement('div');
+            div.className = 'glass rounded-xl p-3 space-y-2';
+            div.innerHTML = `
+                <div class="flex justify-between">
+                    <input type="text" placeholder="动作名称" value="${name}" class="ex-name flex-1 bg-black/30 border border-gray-700 rounded-lg px-3 py-2 text-sm mr-2">
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-red-400">✕</button>
+                </div>
+                <div class="flex space-x-2">
+                    <div class="flex-1">
+                        <label class="text-[10px] text-gray-500">组数</label>
+                        <input type="number" value="${sets}" class="ex-sets w-full bg-black/30 border border-gray-700 rounded-lg px-2 py-1 text-sm text-center">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[10px] text-gray-500">次数</label>
+                        <input type="number" value="${reps}" class="ex-reps w-full bg-black/30 border border-gray-700 rounded-lg px-2 py-1 text-sm text-center">
+                    </div>
+                    <div class="flex-1">
+                        <label class="text-[10px] text-gray-500">重量(kg)</label>
+                        <input type="number" value="${weight}" class="ex-weight w-full bg-black/30 border border-gray-700 rounded-lg px-2 py-1 text-sm text-center">
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function closeTemplateModal() {
+            document.getElementById('template-modal').classList.add('hidden');
+            editingTemplateId = null;
+        }
+
+        async function saveTemplateFromModal() {
+            const name = document.getElementById('edit-tmpl-name').value.trim();
+            const typeKey = document.getElementById('edit-tmpl-type').value;
+            
+            if (!name) {
+                showToast('请输入模板名称');
+                return;
+            }
+            
+            const exercises = [];
+            const rows = document.querySelectorAll('#exercise-inputs > div');
+            rows.forEach(row => {
+                const name = row.querySelector('.ex-name').value.trim();
+                if (name) {
+                    exercises.push({
+                        name: name,
+                        sets: row.querySelector('.ex-sets').value,
+                        reps: row.querySelector('.ex-reps').value,
+                        weight: row.querySelector('.ex-weight').value
+                    });
+                }
+            });
+            
+            if (exercises.length === 0) {
+                showToast('请至少添加一个动作');
+                return;
+            }
+            
+            try {
+                let originalId = null;
+                if (editingTemplateId) {
+                    const parts = editingTemplateId.split('_');
+                    originalId = parts[1];
+                }
+                
+                await templateManager.saveTemplate({ name, exercises }, typeKey, originalId);
+                
+                showToast(editingTemplateId ? '模板已更新' : '模板创建成功');
+                closeTemplateModal();
+                loadTemplateList();
+                initHome();
+            } catch (error) {
+                showToast('保存失败：' + error.message);
+            }
+        }
+
+        async function deleteTemplatePrompt(uniqueId, name) {
+            if (confirm(`确定删除模板「${name}」吗？不可恢复。`)) {
+                try {
+                    await templateManager.deleteTemplate(uniqueId);
+                    showToast(`已删除：${name}`);
+                    loadTemplateList();
+                    initHome();
+                } catch (error) {
+                    showToast('删除失败');
+                }
+            }
+        }
+
+        async function deleteSelectedTemplates() {
+            if (selectedTemplates.size === 0) return;
+            if (!confirm(`确定删除 ${selectedTemplates.size} 个模板吗？不可恢复。`)) return;
+            
+            const count = await templateManager.deleteBatch(Array.from(selectedTemplates));
+            showToast(`已删除 ${count} 个模板`);
+            selectedTemplates.clear();
+            loadTemplateList();
+            initHome();
+        }
+
+        function exportSelectedTemplates() {
+            if (selectedTemplates.size === 0) {
+                showToast('请先选择模板');
+                return;
+            }
+            templateManager.getAllTemplatesWithPath().then(templates => {
+                const selected = templates.filter(t => selectedTemplates.has(t.uniqueId));
+                if (selected.length === 1) templateManager.exportSingle(selected[0]);
+                else templateManager.exportBatch(selected);
+                showToast(`已导出 ${selected.length} 个模板`);
+            });
+        }
+
+        async function importTemplates(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const content = await file.text();
+            const result = await templateManager.importFromFile(content);
+            showToast(result.message);
+            if (result.success) {
+                loadTemplateList();
+                initHome();
+            }
+            input.value = '';
+        }
+
+        // ==================== 日历功能 ====================
+        async function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+            
+            document.getElementById('calendar-month').textContent = `${year}年${month + 1}月`;
+            
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startOffset = firstDay.getDay();
+            
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            const records = await dbManager.getRecords();
+            const monthRecords = records.filter(r => {
+                const d = new Date(r.date);
+                return d.getFullYear() === year && d.getMonth() === month;
+            });
+            const trainingDays = new Set(monthRecords.map(r => new Date(r.date).getDate()));
+            
+            for (let i = 0; i < startOffset; i++) {
+                const div = document.createElement('div');
+                grid.appendChild(div);
+            }
+            
+            const today = new Date();
+            for (let day = 1; day <= daysInMonth; day++) {
+                const div = document.createElement('div');
+                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+                const hasTraining = trainingDays.has(day);
+                
+                div.className = `calendar-day cursor-pointer ${isToday ? 'today' : ''} ${hasTraining ? 'has-training' : 'bg-black/20 text-gray-500'}`;
+                div.innerHTML = `
+                    <span>${day}</span>
+                    ${hasTraining ? '<div class="training-dot"></div>' : ''}
+                `;
+                
+                div.onclick = () => showDayDetail(year, month, day, monthRecords.find(r => new Date(r.date).getDate() === day));
+                grid.appendChild(div);
+            }
+            
+            document.getElementById('day-detail').classList.add('hidden');
+        }
+
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function goToToday() {
+            currentCalendarDate = new Date();
+            renderCalendar();
+        }
+
+        function showDayDetail(year, month, day, record) {
+            const detailDiv = document.getElementById('day-detail');
+            const contentDiv = document.getElementById('detail-content');
+            const dateStr = `${month + 1}月${day}日`;
+            
+            document.getElementById('detail-date').textContent = dateStr;
+            
+            if (!record) {
+                contentDiv.innerHTML = '<div class="text-gray-500 text-sm">当日无训练记录</div>';
+                document.getElementById('detail-count').textContent = '';
+            } else {
+                let totalSets = 0, totalVolume = 0;
+                let html = `<div class="text-sm text-gray-400 mb-2">${record.templateName || '自定义训练'}</div>`;
+                
+                html += '<div class="space-y-2">';
+                record.exercises.forEach(ex => {
+                    const completedSets = ex.sets.filter(s => s.completed).length;
+                    const exerciseVolume = ex.sets.reduce((sum, s) => s.completed ? sum + (s.weight * s.reps) : sum, 0);
+                    totalSets += completedSets;
+                    totalVolume += exerciseVolume;
+                    
+                    html += `
+                        <div class="glass rounded-lg p-2 text-sm">
+                            <div class="font-bold mb-1">${ex.name}</div>
+                            <div class="text-xs text-gray-400">
+                                ${ex.sets.map(s => `${s.weight}kg×${s.reps}${s.completed ? '✓' : ''}`).join(' | ')}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                contentDiv.innerHTML = html;
+                document.getElementById('detail-count').textContent = `${totalSets}组 · ${totalVolume}kg`;
+            }
+            
+            detailDiv.classList.remove('hidden');
+        }
+
+        // ==================== 数据管理 ====================
+        async function loadBackupInfo() {
+            document.getElementById('current-cycle').textContent = backupManager.getCycleDateRange().month;
+            
+            const history = await backupManager.getBackupHistory();
+            const container = document.getElementById('backup-history');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 text-xs">暂无备份记录</div>';
+                return;
+            }
+            
+            container.innerHTML = history.map(h => `
+                <div class="flex justify-between p-2 bg-black/20 rounded-lg">
+                    <div>
+                        <div class="text-xs font-bold">${h.month}</div>
+                        <div class="text-[10px] text-gray-500">${h.recordCount} 条记录</div>
+                    </div>
+                    <div class="text-[10px] text-gray-500">${new Date(h.lastBackup).toLocaleDateString()}</div>
+                </div>
+            `).join('');
+        }
+
+        async function manualBackup() {
+            const records = await dbManager.getRecords();
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            const monthRecords = records.filter(r => r.date.startsWith(currentMonth));
+            
+            if (monthRecords.length === 0) {
+                showToast('本月暂无训练记录');
+                return;
+            }
+            
+            const backupData = {
+                version: CONFIG.DB_VERSION,
+                type: 'training_records',
+                exportDate: new Date().toISOString(),
+                cycleId: currentMonth,
+                cycleRange: backupManager.getCycleDateRange(),
+                records: monthRecords
+            };
+            
+            backupManager.downloadFile(backupData, `训练记录_${currentMonth}.json`);
+            localStorage.setItem(`gym_backup_${currentMonth}`, JSON.stringify(backupData));
+            showToast(`已备份本月 ${monthRecords.length} 条记录`);
+            loadBackupInfo();
+        }
+
+        async function restoreFromFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const content = await file.text();
+            const data = JSON.parse(content);
+            
+            if (data.type !== 'training_records') {
+                showToast('请选择训练记录备份文件');
+                return;
+            }
+            
+            if (confirm(`恢复 ${data.cycleRange.month} 的数据？将合并到现有记录。`)) {
+                for (const record of data.records) {
+                    await dbManager.saveRecord(record);
+                }
+                showToast(`已恢复 ${data.records.length} 条记录`);
+                updateHomeStats();
+            }
+            input.value = '';
+        }
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            dbManager = new DatabaseManager();
+            await dbManager.init();
+            
+            backupManager = new BackupManager(dbManager);
+            templateManager = new TemplateManager(dbManager);
+            
+            initHome();
+        });
+    </script>
+</body>
+</html>
